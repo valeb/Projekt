@@ -1,4 +1,4 @@
-
+commit -m "
 git status
 git log
 git add .
