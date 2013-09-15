@@ -29,7 +29,7 @@
      inkscape:pageshadow="2"
      inkscape:zoom="1.4142136"
      inkscape:cx="238.39106"
-     inkscape:cy="695.92859"
+     inkscape:cy="837.34994"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="true"
@@ -52,7 +52,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -934,7 +934,7 @@
          sodipodi:role="line"
          x="409.63837"
          y="462.36218"
-         id="tspan3098">RFID-Modul </tspan></text>
+         id="tspan3098">RFID-Reader </tspan></text>
     <flowRoot
        xml:space="preserve"
        id="flowRoot6102"
