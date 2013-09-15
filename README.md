@@ -1,4 +1,5 @@
 Projekt
 =======
 
-Das ultra coole Maturaprojekt von mir.
+Maturaprojekt von Valetnin Bernard, 5AEL Gewerbeoberschule Meran, SJ 2013/14
+Alarmanlage mit RFID-Deaktivierung
