@@ -1,11 +1,11 @@
 ;************************************************************************************************
-;*      AW32-Alarmanlage Version 1.0                                                            *
+;*      AW32-    -Programm  Version 2.0                                                         *
 ;*                                                                                              *
-;*      Revision vom 13. Dezember 2013                                                          *
+;*      Revision vom 21. Oktober 2011                                                           *
 ;*                                                                                              *
 ;*      Name: Valentin Bernard                                                                  *
-;*      Klasse: 5ael                                                                            *
-;*      Version: 1.0                                                                            *
+;*      Klasse: 4ael                                                                            *
+;*      Version: -.-                                                                            *
 ;*                                                                                              *
 ;*      Programmiert auf einem Target mit 4,9152 MHz                                            *
 ;*      Interner Busclock mit FLL auf 19,6608 MHz hinaufgetaktet                                *
@@ -58,14 +58,13 @@ Main_Loop
                 clr     TimerFlag          
                 
                 
-                ; Eigene Routinen
+                ; Hier kommen deine Routinen hinein
                 
-                jsr     Tastenroutine 
+                jsr     Tasterroutine 
+                
                 jsr     Menue
+                
                 jsr     Update_LCD
-                
-                ;jsr     Alarmton
-                
                              
                 bra     Main_Loop
 
@@ -79,14 +78,11 @@ Main_Loop
 ;*                                                                                              *
 ;************************************************************************************************
 
-                ;INCLUDE 'PWM.inc'
-                ;INCLUDE 'Alarmton.inc'
-                INCLUDE 'Menue.inc'             ; Routine für das Menü 
+                INCLUDE 'Menue.inc'             ; Routine für das Menü
+                INCLUDE 'tasterroutine.inc'     ; Routine für die Abfrage der Taster
                 INCLUDE 'LCD_Disp_8bit.inc'        ; Routine für das LCD Display
-                INCLUDE 'Tastenroutine.inc'     ; Routine für die Abfrage der Taster
-                INCLUDE 'Blinklichter.inc'        ; Routine für das Blicklicht
                 
-
+                
                 INCLUDE 'Init.inc'              ; Hier startet der µC / Initialisierungen
                 INCLUDE 'Timer.inc'             ; Alles für die Timer (Realtime)
                 INCLUDE 'Dummy_Isr.inc'         ; Für fehlgeschlagene (unerwünschte) Interrupts
