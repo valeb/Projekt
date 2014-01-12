@@ -217,16 +217,19 @@ NVOPT:              equ    $0000FFBF                                ;*** NVOPT -
                 ORG     Z_RAM_START            
 
 
-TimerFlag       ds      1T
-RealTimeCounter ds      1T
+TimerFlag         ds      1T
+RealTimeCounter   ds      1T
 
-TasteA_Flag     ds      1T                                                            
-TasteA_Counter  ds      1T                                                             
-TasteB_Flag     ds      1T                                                              
-TasteB_Counter  ds      1T                                                              
-TasteC_Flag     ds      1T                                                              
-TasteC_Counter  ds      1T 
+TasteA_Flag       ds      1T                                                            
+TasteA_Counter    ds      1T                                                             
+TasteB_Flag       ds      1T                                                              
+TasteB_Counter    ds      1T                                                              
+TasteC_Flag       ds      1T                                                              
+TasteC_Counter    ds      1T
 
+Bewegung_Flag     ds      1T
+RFID_Flag         ds      1T
+PW_Flag           ds      1T
 
 
 ;************************************************************************************************
@@ -237,22 +240,29 @@ TasteC_Counter  ds      1T
 
                 ORG     E_RAM_START
 
-Blink_Counter    ds  1T
+Blink_Counter     ds      1T
+
+Alarm_Timer       ds      2T
                 
-Pointer_Schritte ds     2T                                                             
-Zurueck          ds     2T                                                            
-Schritte_Counter ds     2T                                                              
+Pointer_Schritte  ds      2T                                                             
+Zurueck           ds      2T                                                            
+Schritte_Counter  ds      2T 
 
+Ton_Timer         ds      1T                                                             
+Ton_Select        ds      1T                                                               
+Ton_Pointer       ds      2T                                                              
+Frequenz          ds      2T 
+PWM_Kanal_1       ds      2T                                                             
 
-LCD_Pointer     ds      2T              ; Pointer auf die aktuelle LCD-Routine          
-LCD_Counter     ds      1T                                                             
-LCD_Oben        ds      16T             ; LCD erste Zeile, 16 Zeichen lang              
-LCD_Unten       ds      16T             ; LCD zweite Zeile, 16 Zeichen lang             
-DelayCounter    ds      1T              ; Grässlich - Delay für LCD...                  
-CopyCounter     ds      1T                                                             
-SourcePointer   ds      2T              ; Pointer für Copy-Routinen                     
-DestPointer     ds      2T              ; Ebenfalls für die Copy-Routinen              
-TextLenght      ds      1T                                                              
+LCD_Pointer       ds      2T              ; Pointer auf die aktuelle LCD-Routine          
+LCD_Counter       ds      1T                                                             
+LCD_Oben          ds      16T             ; LCD erste Zeile, 16 Zeichen lang              
+LCD_Unten         ds      16T             ; LCD zweite Zeile, 16 Zeichen lang             
+DelayCounter      ds      1T              ; Grässlich - Delay für LCD...                  
+CopyCounter       ds      1T                                                             
+SourcePointer     ds      2T              ; Pointer für Copy-Routinen                     
+DestPointer       ds      2T              ; Ebenfalls für die Copy-Routinen              
+TextLenght        ds      1T                                                              
                 INCLUDE 'Equates.inc'
 ;************************************************************************************************
 ;*                                                                                              *
@@ -268,7 +278,7 @@ TextLenght      ds      1T
 ;************************************************************************************************
 ;*                                                                                              *
 ;*      Main_Loop: Die Hauptschleife                                                            *
-;*      Sie wird exakt alle 5msec einmal durchlaufen!                                           *
+;*      Sie wird exakt alle 10msec einmal durchlaufen!                                          *
 ;*                                                                                              *
 ;************************************************************************************************
 
@@ -281,17 +291,14 @@ Main_Loop
                 
                 lda     TimerFlag               ; TimerFlag = 0 --> Realtime noch nicht um
                 beq     Main_Loop               ; TimerFlag <>0 --> Realtime (5 msec) ist um!
-                clr     TimerFlag          
-                
+                clr     TimerFlag           
                 
                 ; Eigene Routinen
                 
                 jsr     Tastenroutine 
                 jsr     Menue
                 jsr     Update_LCD
-                
-                ;jsr     Alarmton
-                
+                              
                              
                 bra     Main_Loop
 
@@ -305,11 +312,193 @@ Main_Loop
 ;*                                                                                              *
 ;************************************************************************************************
 
-                ;INCLUDE 'PWM.inc'
-                ;INCLUDE 'Alarmton.inc'
+                INCLUDE 'PWM.inc'
+;****************************************************************
+;*                                                              *
+;*      Init_PWM: Initialisiert die PWM auf den Kanälen:        *
+;*                                                              *
+;*      PF0 (TPM1C2V): Kanal 1                                  *
+;*      PF1 (TPM1C3V): Kanal 2                                  *
+;*      PF2 (TPM1C4V): Kanal 3                                  *
+;*      PF3 (TPM1C5V): Kanal 4                                  *
+;*                                                              *
+;*      PWM läuft auf dem selben Timer wie der Realtime,        *
+;*      hat also eine Grundfrequenz von 19,6608 MHZ             *
+;*      (4,9152 MHz x 4, über FLL)                              *
+;*      1/fclk = 50,863 nsec x 4 = 203,451 nsec Busclock        *
+;*      Ein Aufruf alle 64 Busclocks = einmal alle 13,021 µsec  *
+;*                                                              *
+;****************************************************************
+
+
+Init_PWM
+
+       mov   #%00000000,TPM1SC     ; Timer 1 - Stopped.
+     ;         ||||||||
+     ;         ||||||||_____  PS0  Prescaler : 0:0:0=Clock/1    0:0:1=Clock/2    0:1:0=Clock/4
+     ;         |||||||______  PS1              0:1:1=Clock/8    1:0:0=Clock/16   1:0:1=Clock/32
+     ;         ||||||_______  PS2              1:1:0=Clock/64   1:1:1=Clock/128
+     ;         |||||________  CLKS [A] --> [B:A]  0:0 = TPM OFF  0:1 = Bus rate Clock (BUSCLK)
+     ;         ||||_________  CLKS [B] CLK Source 1:0 = Fixed system Clock (XCLX) 1:1 Ex. Source (TPMxCLK)
+     ;         |||__________  CPWMS Normal Op (0) or Center alligned PWM (1)
+     ;         ||___________  TOIE Timer Interrupt Enable
+     ;         |____________  TOV - Timer Overflow, Read only
+
+
+       mov   #%10101000,TPM1C2SC   ; Timer 1 Channel 0 Gesetzt für Output Compare $54
+       ;mov   #%10101000,TPM1C3SC   ; Timer 1 Channel 0 Gesetzt für Output Compare $54
+       ;mov   #%10101000,TPM1C4SC   ; Timer 1 Channel 0 Gesetzt für Output Compare $54
+       ;mov   #%10101000,TPM1C5SC   ; Timer 1 Channel 0 Gesetzt für Output Compare $54
+     ;         ||||||||
+     ;         ||||||||_____  not used
+     ;         |||||||______  not used
+     ;         ||||||_______  ELS1A Edge Level Select Bits for Channel 1
+     ;         |||||________  ELS1B [B:A]=[1:0]=Edge-alligned PWM
+     ;         ||||_________  MS1A Mode select for Timer 1  [B:A]=[1:0] = Edge-allined PWM
+     ;         |||__________  MS1B
+     ;         ||___________  CH1IE 0=Interr. disable  1=Interrupt enable
+     ;         |____________  CH1F  0=No input capt. or Outp.Comp on Pin  1=Input capt. or Outp.Comp on Pin 
+       
+       
+       ldhx    Frequenz          ; 1000 x 203,451 nsec = 203,451 µsec  Periode PWM = 1000 Clocks!
+       sthx    TPM1MODH        ; 1/X = 4,9152 kHz
+
+
+       mov   #%00001000,TPM1SC     ; Startet den Timer
+     ;         ||||||||
+     ;         ||||||||_____  PS0  Prescaler : 0:0:0=Clock/1    0:0:1=Clock/2    0:1:0=Clock/4
+     ;         |||||||______  PS1              0:1:1=Clock/8    1:0:0=Clock/16   1:0:1=Clock/32
+     ;         ||||||_______  PS2              1:1:0=Clock/64   1:1:1=Clock/128
+     ;         |||||________  CLKS [A] --> [B:A]  0:0 = TPM OFF  0:1 = Bus rate Clock (BUSCLK)
+     ;         ||||_________  CLKS [B] CLK Source 1:0 = Fixed system Clock (XCLX) 1:1 Ex. Source (TPMxCLK)
+     ;         |||__________  CPWMS Normal Op (0) or Center alligned PWM (1)
+     ;         ||___________  TOIE Timer Overflow Interrupt Enable (1) or disable (0)
+     ;         |____________  TOV - Timer Overflow, Read only
+
+
+
+     ; 1000T ist volle Periode (100% Duty), 500T folglich die Hälfte (50%) usw...
+        
+        ldhx    #500T
+        sthx    TPM1C2V         ; Kanal 1: Initialisiert mit 500T (50%)
+        
+        ;ldhx    #500T
+        ;sthx    TPM1C3V         ; Kanal 2: Initialisiert mit 500T (50%)
+        
+        ;ldhx    #750T           
+        ;sthx    TPM1C4V         ; Kanal 3: Initialisiert mit 750T (75%)
+                                 
+        ;ldhx    #1000T           
+        ;sthx    TPM1C5V         ; Kanal 4: Initialisiert mit 1000T (100%)
+        
+        rts
+        
+;****************************************************************
+;*                                                              *
+;*      Set_PWM: teilt die jeweiligen PWM´s den einzelnen       *
+;*      Kanälen zu.                                             *
+;*                                                              *
+;****************************************************************
+        
+Set_PWM
+	   
+	   ldhx		PWM_Kanal_1
+      sthx     TPM1C2V
+        
+	   ;ldhx		PWM_Kanal_2
+     ; sthx     TPM1C3V
+
+	   ;ldhx		PWM_Kanal_3
+     ; sthx     TPM1C4V
+
+	   ;ldhx		PWM_Kanal_4
+     ; sthx     TPM1C5V
+       
+       rts
+       
+       
+
+   
+        
+                INCLUDE 'Alarmton.inc'          ; Tonausgabe
+;************************************************************************************************
+;*      ALARMTON-AUSGABE                                                                      	*
+;*                                                                                              *
+;*      Revision vom 16. Dezember 2013                                                          *
+;*                                                                                              *
+;*      Name: Valentin Bernard                                                                  *
+;*      Klasse: 5AEL                                                                            *
+;*      Version: 1.0                                                                            *
+;*                                                                       			                  *
+;*      Ein Alarmotn wird als Rechteckimpuls augegeben.                                         *                         		
+;*                                                                                              *
+;*                                                                                              *
+;*      Variabeln:                                                                  		        *
+;*      Ton_Timer       ds      1T                                                              *
+;*      Ton_Select      ds      1T                                                              * 
+;*      Ton_Pointer     ds      2T                                                              *
+;*      Frequenz        ds      2T                                                              *
+;*                                                                                              *
+;*      Eingang:                                                                 	 	            *
+;*      jsr   Alarmton                                                     											*
+;*                                                                                              *                                                                                            
+;*      Include:                                                                              	*
+;*      INCLUDE 'Alarmton.inc'                                            											*
+;*                                                                                              *
+;************************************************************************************************
+
+TONDAUER       EQU     100T
+
+
+Alarmton
+
+      lda     Ton_Timer
+      cmpa    #TONDAUER
+      beq     Ton_Steps
+      
+      lda     Ton_Timer
+      inca
+      sta     Ton_Timer
+      
+      rts
+
+Ton_Steps           
+               
+      lda     #0T
+      sta     Ton_Timer
+            
+      lda     Ton_Select
+      cmpa    #0T             ;Ton-Anzahl
+      beq     Ton_0
+      cmpa    #1T
+      beq     Ton_1
+      
+      rts     
+                                            
+Ton_0            
+      ldhx    #1396T          ;A7 3520Hz
+      sthx    Frequenz
+      jsr     Init_PWM
+      lda     #1T
+      sta     Ton_Select
+      
+      rts
+                        
+Ton_1                           
+      ldhx    #2352T          ;C7 2093Hz       
+      sthx    Frequenz
+      jsr     Init_PWM
+      lda     #0T
+      sta     Ton_Select
+      
+      rts
+     
+     
+            
+     
                 INCLUDE 'Menue.inc'             ; Routine für das Menü 
 ;************************************************************************************************
-;*      AW32-Base-Programm  Version 1.0                                                         *
+;*      MENÜSTRUKTUR                                                                            *
 ;*                                                                                              *
 ;*      Revision vom 21. Oktober 2011                                                           *
 ;*                                                                                              *
@@ -326,6 +515,9 @@ Main_Loop
 ;*                                                                                              *
 ;*      In Hauptloop kopieren:                                                                  *
 ;*      jsr     Menue                                                                           *
+;*
+;*      Variablen
+;*      Alarm_Timer      ds     2T
 ;*                                                                                              *
 ;*      In Init kopieren:                                                                       *
 ;*      jsr   Init_Menue                                                                        *
@@ -361,11 +553,9 @@ Menue
           
           rts       
 
-;*************************************** STARTTEXTE **********************************************
+;********| STARTTEXTE |**************************************************************************
 
 StartText
- 
-         ;************************
           
           ;Ausgabe_Text          
           ldhx    #Text_Start1
@@ -387,6 +577,18 @@ StartText
           beq     ZU_StartText2
           
           rts
+          
+          
+ZU_StartText2
+          
+          ldhx    #StartText2
+          sthx    Pointer_Schritte
+          
+          ldhx    #0T
+          sthx    Schritte_Counter
+          
+          rts
+                   
           
 
 StartText2
@@ -413,60 +615,15 @@ StartText2
           rts
 
 
-;********| Sprünge |*****************************************************************************
-
-ZU_StartText2 ;Die Adresse des nächsten Schrittes wird in den Pointer geladen
-          
-          ldhx    #StartText2
-          sthx    Pointer_Schritte
-          
-          ldhx    #0T
-          sthx    Schritte_Counter
-          
-          rts
-          
-;************************************************************************************************  
-
-ZU_M1			
-          ldhx    #Menue1
-          sthx    Pointer_Schritte
-          
-          ldhx    #0T
-          sthx    Schritte_Counter
-          
-          bset    CHECKED, TasteA_Flag       ;Verhindert dass ein Tastendruck öfters verwendet wird
-          bset    CHECKED, TasteB_Flag
-          
-                    
-          rts
-          
-;************************************************************************************************
-
-ZU_M2
-          ldhx    #Menue2
-          sthx    Pointer_Schritte
-          
-          ldhx    #0T
-          sthx    Schritte_Counter
-          
-          bset    CHECKED, TasteA_Flag
-          bset    CHECKED, TasteB_Flag
-          
-          lda     #0T
-          sta     Zurueck
-          
-          rts
           
 ;********| Deaktieviert |************************************************************************                                                                        
 
 Menue1
           
           ;jsr     Check-RFID
-          
           jsr     Blink_Gruen
               
-          ;Ausgabe "Alarm Inaktiv"
-
+          ;Ausgabe: "Alarm Inaktiv"
           ldhx    #Text_Inaktiv
           sthx    SourcePointer
           ldhx    #LCD_Oben
@@ -482,20 +639,18 @@ Menue1
           beq     ZU_M2
                     
           rts
-                    
-;********| Aktieviert |**************************************************************************
+          
+                                          
+;********| Aktiviert |***************************************************************************
 
 Menue2      
           
-          ;jsr    Passwort
-          ;jsr    Check-RFID
-          
-          ;jsr    Bewegungsmelder
-          
+          ;jsr     Passwort
+          ;jsr     Check-RFID
+          jsr     Bewegungsmelder         
           jsr     Blink_Rot
           
-          ;Ausgabe Text
-          
+          ;Ausgabe: "Alarm Aktiv"
           ldhx    #Text_Aktiv
           sthx    SourcePointer
           ldhx    #LCD_Oben
@@ -503,8 +658,7 @@ Menue2
           lda     #32T
           sta     TextLenght
           
-          jsr     CopyText
-          
+          jsr     CopyText          
           
           ;Austrittsbedingungen 
           lda     TasteA_Flag
@@ -512,23 +666,82 @@ Menue2
           beq     ZU_M1
           
           ;lda     RFID-Flag
-          ;lda     PW_Flag 
-          ;lda     Bewegung_Flag
           
+          ;lda     PW_Flag
+           
+          lda     Bewegung_Flag
+          cmpa    #%00000001
+          beq     ZU_M3          
           
           rts
           
-;********| Ausgelöst |**************************************************************************
+;********| Sprünge |*****************************************************************************
 
-Menue3      
+;Die Adresse des nächsten Schrittes wird in den Pointer geladen
+         
+ZU_M3
+          ldhx    #Menue3
+          sthx    Pointer_Schritte
           
-          ;jsr    Passwort
-          ;jsr    Check-RFID  
+          ldhx    #0T
+          sthx    Schritte_Counter
           
-          ;jsr     Init_PWM
+          bset    CHECKED, TasteA_Flag       ;Verhindert dass ein Tastendruck öfters verwendet wird
+          bset    CHECKED, TasteB_Flag
           
-          ;Ausgabe Text
+          lda     #0T
+          sta     Zurueck
           
+          rts
+          
+ZU_M2
+          ldhx    #Menue2
+          sthx    Pointer_Schritte
+          
+          ldhx    #0T
+          sthx    Schritte_Counter
+          
+          bset    CHECKED, TasteA_Flag
+          bset    CHECKED, TasteB_Flag
+          
+          lda     #0T
+          sta     Zurueck
+          
+          rts
+                    
+ZU_M1			
+          ldhx    #Menue1
+          sthx    Pointer_Schritte
+          
+          ldhx    #0T
+          sthx    Schritte_Counter
+          
+          bset    CHECKED, TasteA_Flag
+          bset    CHECKED, TasteB_Flag
+          
+                    
+          rts                 
+          
+;********| Ausgelöst |***************************************************************************
+
+Menue3    
+           
+          jsr     Bewegungsmelder
+          
+          lda     Bewegung_Flag
+          cmpa    #%00000001
+          bne     No_Reset
+          
+          ldhx    #0T
+          sthx    Alarm_Timer
+          
+No_Reset          
+          
+          jsr     Alarmton
+          ;jsr     Passwort
+          ;jsr     Check-RFID  
+   
+          ;Ausgabe Text 
           ldhx    #Text_Aktiv
           sthx    SourcePointer
           ldhx    #LCD_Oben
@@ -536,14 +749,24 @@ Menue3
           lda     #32T
           sta     TextLenght
           
-          jsr     CopyText
+          jsr     CopyText        
           
           
-          ;Austrittsbedingungen 
+          ;Austrittsbedingungen          
+          
+          ;lda     RFID_Flag
+          ;lda     PW_Flag
+          
           lda     TasteA_Flag
           cmpa    #%00000001        
           beq     ZU_M1
           
+          ldhx    Alarm_Timer
+          incx
+          sthx    Alarm_Timer
+          cphx    #40000T
+          beq     ZU_M2
+
           rts          
           
                    
@@ -571,11 +794,11 @@ Text_Aktiv
           
 Text_Ein
                   ;----------------
-          dc.b    'Der Alarm wurde '
-          dc.b    'ausgelöst...    '          
-                INCLUDE 'LCD_Disp_8bit.inc'        ; Routine für das LCD Display
+          dc.b    '     Alarm!     '
+          dc.b    '                '
+                INCLUDE 'LCD_Disp_8bit.inc'     ; Routine für das LCD Display
 ;************************************************************************************************
-;*      LCD Rouine                                                                              *
+;*      LCD-ROUTINE                                                                              *
 ;*                                                                                              *
 ;*      Revision vom 14. januar 2013                                                            *
 ;*                                                                                              *
@@ -1113,9 +1336,9 @@ TasteCEnde
 
         
      
-                INCLUDE 'Blinklichter.inc'        ; Routine für das Blicklicht
+                INCLUDE 'Blinklichter.inc'      ; Routine für das Blicklicht
 ;************************************************************************************************
-;*      AW32-Base-Programm  Version 1.0                                                         *
+;*      BLINKLICHTER                                                                            *
 ;*                                                                                              *
 ;*      Revision vom 10. Januar 2014                                                            *
 ;*                                                                                              *
@@ -1193,7 +1416,7 @@ Blink_Gruen
 
           lda   Blink_Counter               	; Verzögerung 100 x 10ms = 1s
           inca
-          sta   Blink_Counter
+          sta   Blink_Counter 
           cmpa  #VERZOEGERUNG                         
           bne   Ende_Gruen
           
@@ -1211,6 +1434,73 @@ Gruen_aus
 
 Ende_Gruen
           rts
+                INCLUDE 'Bewegungsmelder.inc'   ; Bewegungsmelder auslesen
+;************************************************************************************************
+;*      AW32-Bewegungsmelder  Version 1.0                                                       *
+;*                                                                                              *
+;*      Revision vom 10. Januar 2014                                                            *
+;*                                                                                              *
+;*      Name: Valentin Beranrd                                                                  *
+;*      Klasse: 5AEL                                                                            *
+;*      Version: 1.0                                                                            *
+;*                                                                                              *
+;*      Auslesen des Bewegungsmelders                                                           *
+;*                                                                                              *
+;*      Variabeln:                                                                              *
+;*      Bewegung_Flag    ds  1T                                                                 *
+;*                                                                                              *
+;*      Eingang:                                                                                *
+;*      jsr     Blinklicht                                                                      *
+;*                                                                                              *
+;*      In Init kopieren:                                                                       *
+;*      jsr   Init_Blinklicht                                                                   *
+;*                                                                                              *
+;*      In ASM kopieren                                                                         *
+;*      INCLUDE 'Bewegungsmelder.inc'        ; Routine für das Blicklicht                       *
+;************************************************************************************************
+
+BEWEGUNG_PIN     EQU     4
+BEWEGUNG_PORT    EQU     PORTF
+
+Bewegungsmelder
+
+        brclr     BEWEGUNG_PIN,BEWEGUNG_PORT,Ende_Bewegung
+        
+        bset      0,Bewegung_Flag
+        
+Ende_Bewegung
+        
+        clr       Bewegung_Flag
+        rts   
+                INCLUDE 'Passwort.inc'          ; Routine zur Passworteingabe
+;************************************************************************************************
+;*      AW32-Passwort  Version 1.0                                                              *
+;*                                                                                              *
+;*      Revision vom 10. Januar 2014                                                            *
+;*                                                                                              *
+;*      Name: Valentin Beranrd                                                                  *
+;*      Klasse: 5AEL                                                                            *
+;*      Version: 1.0                                                                            *
+;*                                                                                              *
+;*      Passworteingabe auf Richtigkeit überprüfen                                              *
+;*                                                                                              *
+;*      Variabeln:                                                                              *
+;*      PW_Flag     ds    1T                                                                    *
+;*                                                                                              *
+;*      Eingang:                                                                                *
+;*      jsr     Check_PW                                                                        *
+;*                                                                                              *
+;*      In Init kopieren:                                                                       *
+;*      jsr   Init_Blinklicht                                                                   *
+;*                                                                                              *
+;*      In ASM kopieren                                                                         *
+;*      INCLUDE 'Passwort.inc'        ; Routine zur Passworteingabe                             *
+;************************************************************************************************
+
+
+Check_PW
+
+        rts
                 
 
                 INCLUDE 'Init.inc'              ; Hier startet der µC / Initialisierungen

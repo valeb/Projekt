@@ -1,5 +1,5 @@
 ;************************************************************************************************
-;*      AW32-Base-Programm  Version 1.0                                                         *
+;*      MENÜSTRUKTUR                                                                            *
 ;*                                                                                              *
 ;*      Revision vom 21. Oktober 2011                                                           *
 ;*                                                                                              *
@@ -16,6 +16,9 @@
 ;*                                                                                              *
 ;*      In Hauptloop kopieren:                                                                  *
 ;*      jsr     Menue                                                                           *
+;*
+;*      Variablen
+;*      Alarm_Timer      ds     2T
 ;*                                                                                              *
 ;*      In Init kopieren:                                                                       *
 ;*      jsr   Init_Menue                                                                        *
@@ -51,11 +54,9 @@ Menue
           
           rts       
 
-;*************************************** STARTTEXTE **********************************************
+;********| STARTTEXTE |**************************************************************************
 
 StartText
- 
-         ;************************
           
           ;Ausgabe_Text          
           ldhx    #Text_Start1
@@ -77,6 +78,18 @@ StartText
           beq     ZU_StartText2
           
           rts
+          
+          
+ZU_StartText2
+          
+          ldhx    #StartText2
+          sthx    Pointer_Schritte
+          
+          ldhx    #0T
+          sthx    Schritte_Counter
+          
+          rts
+                   
           
 
 StartText2
@@ -103,60 +116,15 @@ StartText2
           rts
 
 
-;********| Sprünge |*****************************************************************************
-
-ZU_StartText2 ;Die Adresse des nächsten Schrittes wird in den Pointer geladen
-          
-          ldhx    #StartText2
-          sthx    Pointer_Schritte
-          
-          ldhx    #0T
-          sthx    Schritte_Counter
-          
-          rts
-          
-;************************************************************************************************  
-
-ZU_M1			
-          ldhx    #Menue1
-          sthx    Pointer_Schritte
-          
-          ldhx    #0T
-          sthx    Schritte_Counter
-          
-          bset    CHECKED, TasteA_Flag       ;Verhindert dass ein Tastendruck öfters verwendet wird
-          bset    CHECKED, TasteB_Flag
-          
-                    
-          rts
-          
-;************************************************************************************************
-
-ZU_M2
-          ldhx    #Menue2
-          sthx    Pointer_Schritte
-          
-          ldhx    #0T
-          sthx    Schritte_Counter
-          
-          bset    CHECKED, TasteA_Flag
-          bset    CHECKED, TasteB_Flag
-          
-          lda     #0T
-          sta     Zurueck
-          
-          rts
           
 ;********| Deaktieviert |************************************************************************                                                                        
 
 Menue1
           
           ;jsr     Check-RFID
-          
           jsr     Blink_Gruen
               
-          ;Ausgabe "Alarm Inaktiv"
-
+          ;Ausgabe: "Alarm Inaktiv"
           ldhx    #Text_Inaktiv
           sthx    SourcePointer
           ldhx    #LCD_Oben
@@ -172,20 +140,18 @@ Menue1
           beq     ZU_M2
                     
           rts
-                    
-;********| Aktieviert |**************************************************************************
+          
+                                          
+;********| Aktiviert |***************************************************************************
 
 Menue2      
           
-          ;jsr    Passwort
-          ;jsr    Check-RFID
-          
-          ;jsr    Bewegungsmelder
-          
+          ;jsr     Passwort
+          ;jsr     Check-RFID
+          jsr     Bewegungsmelder         
           jsr     Blink_Rot
           
-          ;Ausgabe Text
-          
+          ;Ausgabe: "Alarm Aktiv"
           ldhx    #Text_Aktiv
           sthx    SourcePointer
           ldhx    #LCD_Oben
@@ -193,8 +159,7 @@ Menue2
           lda     #32T
           sta     TextLenght
           
-          jsr     CopyText
-          
+          jsr     CopyText          
           
           ;Austrittsbedingungen 
           lda     TasteA_Flag
@@ -202,23 +167,82 @@ Menue2
           beq     ZU_M1
           
           ;lda     RFID-Flag
-          ;lda     PW_Flag 
-          ;lda     Bewegung_Flag
           
+          ;lda     PW_Flag
+           
+          lda     Bewegung_Flag
+          cmpa    #%00000001
+          beq     ZU_M3          
           
           rts
           
-;********| Ausgelöst |**************************************************************************
+;********| Sprünge |*****************************************************************************
 
-Menue3      
+;Die Adresse des nächsten Schrittes wird in den Pointer geladen
+         
+ZU_M3
+          ldhx    #Menue3
+          sthx    Pointer_Schritte
           
-          ;jsr    Passwort
-          ;jsr    Check-RFID  
+          ldhx    #0T
+          sthx    Schritte_Counter
           
-          ;jsr     Init_PWM
+          bset    CHECKED, TasteA_Flag       ;Verhindert dass ein Tastendruck öfters verwendet wird
+          bset    CHECKED, TasteB_Flag
           
-          ;Ausgabe Text
+          lda     #0T
+          sta     Zurueck
           
+          rts
+          
+ZU_M2
+          ldhx    #Menue2
+          sthx    Pointer_Schritte
+          
+          ldhx    #0T
+          sthx    Schritte_Counter
+          
+          bset    CHECKED, TasteA_Flag
+          bset    CHECKED, TasteB_Flag
+          
+          lda     #0T
+          sta     Zurueck
+          
+          rts
+                    
+ZU_M1			
+          ldhx    #Menue1
+          sthx    Pointer_Schritte
+          
+          ldhx    #0T
+          sthx    Schritte_Counter
+          
+          bset    CHECKED, TasteA_Flag
+          bset    CHECKED, TasteB_Flag
+          
+                    
+          rts                 
+          
+;********| Ausgelöst |***************************************************************************
+
+Menue3    
+           
+          jsr     Bewegungsmelder
+          
+          lda     Bewegung_Flag
+          cmpa    #%00000001
+          bne     No_Reset
+          
+          ldhx    #0T
+          sthx    Alarm_Timer
+          
+No_Reset          
+          
+          jsr     Alarmton
+          ;jsr     Passwort
+          ;jsr     Check-RFID  
+   
+          ;Ausgabe Text 
           ldhx    #Text_Aktiv
           sthx    SourcePointer
           ldhx    #LCD_Oben
@@ -226,14 +250,24 @@ Menue3
           lda     #32T
           sta     TextLenght
           
-          jsr     CopyText
+          jsr     CopyText        
           
           
-          ;Austrittsbedingungen 
+          ;Austrittsbedingungen          
+          
+          ;lda     RFID_Flag
+          ;lda     PW_Flag
+          
           lda     TasteA_Flag
           cmpa    #%00000001        
           beq     ZU_M1
           
+          ldhx    Alarm_Timer
+          incx
+          sthx    Alarm_Timer
+          cphx    #40000T
+          beq     ZU_M2
+
           rts          
           
                    
@@ -261,5 +295,5 @@ Text_Aktiv
           
 Text_Ein
                   ;----------------
-          dc.b    'Der Alarm wurde '
-          dc.b    'ausgelöst...    '          
+          dc.b    '     Alarm!     '
+          dc.b    '                '

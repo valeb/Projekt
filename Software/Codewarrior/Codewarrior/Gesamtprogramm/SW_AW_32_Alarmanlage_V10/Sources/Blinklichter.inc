@@ -1,5 +1,5 @@
 ;************************************************************************************************
-;*      AW32-Base-Programm  Version 1.0                                                         *
+;*      BLINKLICHTER                                                                            *
 ;*                                                                                              *
 ;*      Revision vom 10. Januar 2014                                                            *
 ;*                                                                                              *
@@ -77,7 +77,7 @@ Blink_Gruen
 
           lda   Blink_Counter               	; Verzögerung 100 x 10ms = 1s
           inca
-          sta   Blink_Counter
+          sta   Blink_Counter 
           cmpa  #VERZOEGERUNG                         
           bne   Ende_Gruen
           
