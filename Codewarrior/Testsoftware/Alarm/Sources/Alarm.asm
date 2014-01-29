@@ -60,8 +60,7 @@ Main_Loop
                 
                 ; Eigene Routinen
                 
-                
-                
+                       
                              
                 bra     Main_Loop
 
@@ -75,6 +74,7 @@ Main_Loop
 ;*                                                                                              *
 ;************************************************************************************************
 
+                INCLUDE 'Timerinterrupt.inc'    
 
                 INCLUDE 'Init.inc'              ; Hier startet der µC / Initialisierungen
                 INCLUDE 'Timer.inc'             ; Alles für die Timer (Realtime)

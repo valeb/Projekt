@@ -70,10 +70,32 @@ Init_RPM_Timer
 T2_Over
 
     pshh
-    	
-	  mov   #$60,TPM1C5VH
+  
+    lda   TPM1C5SC
+    mov   #%01010000,TPM1C5SC  ;Flag löschen
+  
+
+    ;lda  TPM1C2SC
+    ;and  #$7F
+    ;sta  TPM1C2SC           
+
+    lda   TPM1C5VL           ; Nächster Interrupt in weiteren $6000 Clicks
+    add   #$EB               ; Also wieder $6000 x 203,451 nsec = 5 msec GENAU
+    sta   TPM1C5VL	
+
+    lda   TPM1C5VH
+    adc   #$01		 
+    sta   TPM1C5VH 
     
     brclr 0,RPM_TimerStart,RPM_NoTimer  
+  
+    ldhx   RPMCounter              
+    aix    #1T
+    sthx   RPMCounter 
+
+    
+    brclr 0, 
+    
   
     ldhx   RPMCounter              
     aix    #1T

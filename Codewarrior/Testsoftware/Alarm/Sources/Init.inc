@@ -30,6 +30,7 @@ Main_Init
                 
                 ;Eigene Inits
                 
+                jsr     Init_RPM_Timer
                 
                 cli                             ; Interrupts freigeben
 
