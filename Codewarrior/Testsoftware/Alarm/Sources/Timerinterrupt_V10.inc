@@ -1,15 +1,15 @@
 ;************************************************************************************************
 ;*                                                                                              *
-;*      AW32-Timerinterrupt  Version 1.0                                                             * 
+;*      AW32-Timerinterrupt  Version 1.0                                                        * 
 ;*                                                                                              *
-;*      Revision vom 30.Dezember 2013                                                           * 
+;*      Revision vom 24.01.2014                                                                 * 
 ;*                                                                                              *
-;*      Name: Lukas Graif                                                                       * 
+;*      Name: Valentin Bernard                                                                  * 
 ;*      Klasse: 5AEL                                                                            * 
 ;*      Version: 1.0                                                                            * 
 ;*                                                                                              *
 ;*      RPM_Timer 1.0                                                                           * 
-;*      Timer für die RPM Routine.                                                              * 
+;*      Timer für die Alarmausgabe                                                              * 
 ;*                                                                                              *
 ;*      Variabeln:                                                                              *
 ;*      ;RPM_Timer                                                                              * 
@@ -27,10 +27,6 @@
 
 
 Init_RPM_Timer
-
-
-   lda   #0T
-   sta   RPM_TimerStart 
 
    mov   #%00000000,TPM1SC     ; Timer 1CH2 STOP
 
@@ -67,43 +63,32 @@ Init_RPM_Timer
 
 
 
-T2_Over
+Timer_Over
 
     pshh
   
     lda   TPM1C5SC
-    mov   #%01010000,TPM1C5SC  ;Flag löschen
+    mov   #%01010000,TPM1C5SC   ;Flag löschen
   
-
-    ;lda  TPM1C2SC
-    ;and  #$7F
-    ;sta  TPM1C2SC           
-
-    lda   TPM1C5VL           ; Nächster Interrupt in weiteren $6000 Clicks
-    add   #$EB               ; Also wieder $6000 x 203,451 nsec = 5 msec GENAU
+    lda   TPM1C5VL              ; Nächster Interrupt in weiteren $6000 Clicks
+    add   #$EB                  ; Also wieder $01EB x 203,451 nsec = 5 msec GENAU
     sta   TPM1C5VL	
 
     lda   TPM1C5VH
-    adc   #$01		 
+    adc   #$02		 
     sta   TPM1C5VH 
     
-    brclr 0,RPM_TimerStart,RPM_NoTimer  
-  
-    ldhx   RPMCounter              
-    aix    #1T
-    sthx   RPMCounter 
-
+    brset 4,PORTB,Aus
     
-    brclr 0, 
+    bset  4,PORTB
     
-  
-    ldhx   RPMCounter              
-    aix    #1T
-    sthx   RPMCounter 
+    bra   RT_Timer
+    
+Aus 
+    bclr  4,PORTB    
 
-RPM_NoTimer
+RT_Timer
    
-  pulh
+    pulh
 
-
-  rti
+    rti
