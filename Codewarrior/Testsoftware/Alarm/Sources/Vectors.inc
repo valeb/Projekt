@@ -22,7 +22,7 @@
                 DC.W    Dummy_ISR       ; $FFE4+$FFE5   Vector TMP2CH1                
                 DC.W    Dummy_ISR       ; $FFE6+$FFE7   Vector TPM2CH0                
                 DC.W    Dummy_ISR       ; $FFE8+$FFE9   Vector TPM1OVF                
-                DC.W    Dummy_ISR       ; $FFEA+$FFEB   Vector TPM1CH5
+                DC.W    Timer_Over      ; $FFEA+$FFEB   Vector TPM1CH5
                 DC.W    Dummy_ISR       ; $FFEC+$FFED   Vector TPM1CH4
                 DC.W    Dummy_ISR       ; $FFEE+$FFEF   Vector TPM1CH3
                 DC.W    Dummy_ISR       ; $FFF0+$FFF1   Vector TPM1CH2

@@ -17,20 +17,21 @@ Main_Init
                 sta     PORTD
                 sta     PORTE
 
-                mov     #%00000000,PTADD        ; Data Direction für PORTA
-                mov     #%00000000,PTBDD        ; Data Direction für PORTB                
+                mov     #%11111111,PTADD        ; Data Direction für PORTA
+                mov     #%00000001,PTBDD        ; Data Direction für PORTB                
                 mov     #%00000000,PTCDD        ; DDR für Port C: 
                 mov     #%00000000,PTDDD        ; DDR für PORT D: 
                 mov     #%00000000,PTEDD        ; DDR für PORT E: 
                 mov     #%00000000,PTFDD        ; DDR für PORT F: 
-                mov     #%00000000,PTGDD        ; DDR für PORT G: 
+                mov     #%00000011,PTGDD        ; DDR für PORT G: 
 
                 jsr     Init_MCU                ; [.] Controller Clock usw.       
                 jsr     Init_Realtime           ; [Timer.inc] Realtime + PWM-Kanäle
                 
                 ;Eigene Inits
                 
-                jsr     Init_RPM_Timer
+                jsr     Init_Alarmton
+                jsr     Init_Alarmtimer
                 
                 cli                             ; Interrupts freigeben
 

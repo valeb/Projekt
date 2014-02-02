@@ -23,8 +23,8 @@
 ;************************************************************************************************
 
 VERZOEGERUNG    EQU   50T
-BLINK_ROT       EQU   0
-BLINK_GRUEN     EQU   1
+BLINK_ROT       EQU   6
+BLINK_GRUEN     EQU   7
 BLINK_PORT      EQU   PORTD
 
 ;************************************************************************************************
@@ -45,7 +45,7 @@ Blink_Rot
 
           bclr  BLINK_GRUEN,BLINK_PORT
         
-          lda   Blink_Counter               	; Verzögerung 100 x 10ms = 1s
+          lda   Blink_Counter               	; Verzögerung 50 x 10ms = 0,5s
           inca
           sta   Blink_Counter
           cmpa  #VERZOEGERUNG                         

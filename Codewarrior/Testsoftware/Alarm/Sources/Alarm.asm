@@ -60,7 +60,7 @@ Main_Loop
                 
                 ; Eigene Routinen
                 
-                       
+                jsr     Alarmton       
                              
                 bra     Main_Loop
 
@@ -74,7 +74,8 @@ Main_Loop
 ;*                                                                                              *
 ;************************************************************************************************
 
-                INCLUDE 'Timerinterrupt_V10.inc'    
+                INCLUDE 'Timerinterrupt_V10.inc'
+                INCLUDE 'Alarmton.inc'              
 
                 INCLUDE 'Init.inc'              ; Hier startet der µC / Initialisierungen
                 INCLUDE 'Timer.inc'             ; Alles für die Timer (Realtime)

@@ -8,7 +8,7 @@
 ;*      Klasse: 5AEL                                                                            * 
 ;*      Version: 1.0                                                                            * 
 ;*                                                                                              *
-;*      Timer für die Alarmausgabe. Frequenz nicht veränderbar.                                 * 
+;*      Timer für die Alarmausgabe. Frequenz veränderbar über T_Low und T_High.                  * 
 ;*                                                                                              *
 ;*                                                                                              *
 ;*      In Init kopieren:                                                                       * 
@@ -55,9 +55,7 @@ Init_Alarmtimer
 
 
 ;***********************************************************************************************************
-;*                                                                                                         *
 ;*   ALARMTON INTERRUPRT: Toggelt PB0                                                                      *
-;*                                                                                                         *
 ;***********************************************************************************************************
 
 Timer_Over

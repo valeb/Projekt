@@ -12,8 +12,9 @@ RealTimeCounter ds      1T
 
 Ton_Timer       ds      1T
 Ton_Select      ds      1T
-Ton_Pointer     ds      2T
-Frequenz        ds      2T
+
+T_Low           ds      1T
+T_High          ds      1T
 
 
 ;************************************************************************************************
@@ -23,10 +24,3 @@ Frequenz        ds      2T
 ;************************************************************************************************
 
                 ORG     E_RAM_START
-                
-PWM_Kanal_1     ds      2T   
-;PWM_Kanal_2     ds      2T
-;PWM_Kanal_3     ds      2T
-;PWM_Kanal_4     ds      2T
-
-       

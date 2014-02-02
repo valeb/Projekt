@@ -231,6 +231,9 @@ Bewegung_Flag     ds      1T
 RFID_Flag         ds      1T
 PW_Flag           ds      1T
 
+T_High            ds      1T                                                             
+T_Low             ds      1T
+                  
 
 ;************************************************************************************************
 ;*                                                                                              *
@@ -312,117 +315,99 @@ Main_Loop
 ;*                                                                                              *
 ;************************************************************************************************
 
-                INCLUDE 'PWM.inc'
-;****************************************************************
-;*                                                              *
-;*      Init_PWM: Initialisiert die PWM auf den Kanälen:        *
-;*                                                              *
-;*      PF0 (TPM1C2V): Kanal 1                                  *
-;*      PF1 (TPM1C3V): Kanal 2                                  *
-;*      PF2 (TPM1C4V): Kanal 3                                  *
-;*      PF3 (TPM1C5V): Kanal 4                                  *
-;*                                                              *
-;*      PWM läuft auf dem selben Timer wie der Realtime,        *
-;*      hat also eine Grundfrequenz von 19,6608 MHZ             *
-;*      (4,9152 MHz x 4, über FLL)                              *
-;*      1/fclk = 50,863 nsec x 4 = 203,451 nsec Busclock        *
-;*      Ein Aufruf alle 64 Busclocks = einmal alle 13,021 µsec  *
-;*                                                              *
-;****************************************************************
+                INCLUDE 'Timerinterrupt_V20.inc'; Timerinterrupt für die Tonausgabe
+;************************************************************************************************
+;*                                                                                              *
+;*      AW32-Timerinterrupt  Version 1.0                                                        * 
+;*                                                                                              *
+;*      Revision vom 24.01.2014                                                                 * 
+;*                                                                                              *
+;*      Name: Valentin Bernard                                                                  * 
+;*      Klasse: 5AEL                                                                            * 
+;*      Version: 1.0                                                                            * 
+;*                                                                                              *
+;*      Timer für die Alarmausgabe. Frequenz veränderbar über T_Low und T_High.                  * 
+;*                                                                                              *
+;*                                                                                              *
+;*      In Init kopieren:                                                                       * 
+;*      jsr     Init_Alarmtimer                                                                 * 
+;*                                                                                              *
+;*      In ASM kopieren:                                                                        *
+;*      INCLUDE 'Timerinterrupt_V10.inc'                                                        * 
+;*                                                                                              *
+;************************************************************************************************
+
+Init_Alarmtimer
+ 
+  mov   #%00000000,TPM1SC     ; Timer 1CH2 STOP
 
 
-Init_PWM
+  mov   #$60,TPM1C5VH         ; Setzt einen Output Compare nach $6000 Clicks
+  mov   #$00,TPM1C5VL         ; das sind bei dem gegebenen Clock GENAU 5 msec
+                           
 
-       mov   #%00000000,TPM1SC     ; Timer 1 - Stopped.
-     ;         ||||||||
-     ;         ||||||||_____  PS0  Prescaler : 0:0:0=Clock/1    0:0:1=Clock/2    0:1:0=Clock/4
-     ;         |||||||______  PS1              0:1:1=Clock/8    1:0:0=Clock/16   1:0:1=Clock/32
-     ;         ||||||_______  PS2              1:1:0=Clock/64   1:1:1=Clock/128
-     ;         |||||________  CLKS [A] --> [B:A]  0:0 = TPM OFF  0:1 = Bus rate Clock (BUSCLK)
-     ;         ||||_________  CLKS [B] CLK Source 1:0 = Fixed system Clock (XCLX) 1:1 Ex. Source (TPMxCLK)
-     ;         |||__________  CPWMS Normal Op (0) or Center alligned PWM (1)
-     ;         ||___________  TOIE Timer Interrupt Enable
-     ;         |____________  TOV - Timer Overflow, Read only
+  mov   #%01010000,TPM1C5SC   ; Timer 1 Channel 5 Gesetzt für Output Compare $50
+;         ||||||||
+;         ||||||||_____  not used
+;         |||||||______  not used
+;         ||||||_______  ELS1A Edge Level Select Bits for Channel 1
+;         |||||________  ELS1B [B:A]=[0:1]=Toggle Output con Compare  [0:0]=Software compare only
+;         ||||_________  MS1A Mode select for Timer 1  [B:A]=[0:1] = Output compare
+;         |||__________  MS1B
+;         ||___________  CH1IE 0=Interr. disable  1=Interrupt enable
+;         |____________  CH1F  0=No input capt. or Outp.Comp on Pin  1=Input capt. or Outp.Comp on Pin 
+ 
 
+  mov   #%00001000,TPM1SC     ; Startet den Timer 1CH2
+;         ||||||||
+;         ||||||||_____  PS0  Prescaler : 0:0:0=Clock/1    0:0:1=Clock/2    0:1:0=Clock/4
+;         |||||||______  PS1              0:1:1=Clock/8    1:0:0=Clock/16   1:0:1=Clock/32
+;         ||||||_______  PS2              1:1:0=Clock/64   1:1:1=Clock/128
+;         |||||________  CLKS [A] --> [B:A]  0:0 = TPM OFF  0:1 = Bus rate Clock (BUSCLK)
+;         ||||_________  CLKS [B] CLK Source 1:0 = Fixed system Clock (XCLX) 1:1 Ex. Source (TPMxCLK)
+;         |||__________  CPWMS Normal Op (0) or Center alligned PWM (1)
+;         ||___________  TOIE Timer Interrupt Enable
+;         |____________  TOV - Timer Overflow, Read only
 
-       mov   #%10101000,TPM1C2SC   ; Timer 1 Channel 0 Gesetzt für Output Compare $54
-       ;mov   #%10101000,TPM1C3SC   ; Timer 1 Channel 0 Gesetzt für Output Compare $54
-       ;mov   #%10101000,TPM1C4SC   ; Timer 1 Channel 0 Gesetzt für Output Compare $54
-       ;mov   #%10101000,TPM1C5SC   ; Timer 1 Channel 0 Gesetzt für Output Compare $54
-     ;         ||||||||
-     ;         ||||||||_____  not used
-     ;         |||||||______  not used
-     ;         ||||||_______  ELS1A Edge Level Select Bits for Channel 1
-     ;         |||||________  ELS1B [B:A]=[1:0]=Edge-alligned PWM
-     ;         ||||_________  MS1A Mode select for Timer 1  [B:A]=[1:0] = Edge-allined PWM
-     ;         |||__________  MS1B
-     ;         ||___________  CH1IE 0=Interr. disable  1=Interrupt enable
-     ;         |____________  CH1F  0=No input capt. or Outp.Comp on Pin  1=Input capt. or Outp.Comp on Pin 
-       
-       
-       ldhx    Frequenz          ; 1000 x 203,451 nsec = 203,451 µsec  Periode PWM = 1000 Clocks!
-       sthx    TPM1MODH        ; 1/X = 4,9152 kHz
+  rts
 
 
-       mov   #%00001000,TPM1SC     ; Startet den Timer
-     ;         ||||||||
-     ;         ||||||||_____  PS0  Prescaler : 0:0:0=Clock/1    0:0:1=Clock/2    0:1:0=Clock/4
-     ;         |||||||______  PS1              0:1:1=Clock/8    1:0:0=Clock/16   1:0:1=Clock/32
-     ;         ||||||_______  PS2              1:1:0=Clock/64   1:1:1=Clock/128
-     ;         |||||________  CLKS [A] --> [B:A]  0:0 = TPM OFF  0:1 = Bus rate Clock (BUSCLK)
-     ;         ||||_________  CLKS [B] CLK Source 1:0 = Fixed system Clock (XCLX) 1:1 Ex. Source (TPMxCLK)
-     ;         |||__________  CPWMS Normal Op (0) or Center alligned PWM (1)
-     ;         ||___________  TOIE Timer Overflow Interrupt Enable (1) or disable (0)
-     ;         |____________  TOV - Timer Overflow, Read only
+;***********************************************************************************************************
+;*   ALARMTON INTERRUPRT: Toggelt PB0                                                                      *
+;***********************************************************************************************************
 
+Timer_Over
 
+    pshh
+  
+    lda   TPM1C5SC
+    mov   #%01010000,TPM1C5SC   ;Flag löschen
+  
+    lda   TPM1C5VL              ; Nächster Interrupt in weiteren $6000 Clicks
+    add   T_Low                 ; Also wieder $02EB x 203,451 nsec
+    sta   TPM1C5VL	
 
-     ; 1000T ist volle Periode (100% Duty), 500T folglich die Hälfte (50%) usw...
-        
-        ldhx    #500T
-        sthx    TPM1C2V         ; Kanal 1: Initialisiert mit 500T (50%)
-        
-        ;ldhx    #500T
-        ;sthx    TPM1C3V         ; Kanal 2: Initialisiert mit 500T (50%)
-        
-        ;ldhx    #750T           
-        ;sthx    TPM1C4V         ; Kanal 3: Initialisiert mit 750T (75%)
-                                 
-        ;ldhx    #1000T           
-        ;sthx    TPM1C5V         ; Kanal 4: Initialisiert mit 1000T (100%)
-        
-        rts
-        
-;****************************************************************
-;*                                                              *
-;*      Set_PWM: teilt die jeweiligen PWM´s den einzelnen       *
-;*      Kanälen zu.                                             *
-;*                                                              *
-;****************************************************************
-        
-Set_PWM
-	   
-	   ldhx		PWM_Kanal_1
-      sthx     TPM1C2V
-        
-	   ;ldhx		PWM_Kanal_2
-     ; sthx     TPM1C3V
+    lda   TPM1C5VH
+    adc   T_High		 
+    sta   TPM1C5VH 
+    
+    brset 0,PORTB,Aus
+    
+    bset  0,PORTB
+    
+    bra   RT_Timer
+    
+Aus 
+    bclr  0,PORTB    
 
-	   ;ldhx		PWM_Kanal_3
-     ; sthx     TPM1C4V
-
-	   ;ldhx		PWM_Kanal_4
-     ; sthx     TPM1C5V
-       
-       rts
-       
-       
-
+RT_Timer
    
-        
+    pulh
+
+    rti
                 INCLUDE 'Alarmton.inc'          ; Tonausgabe
 ;************************************************************************************************
-;*      ALARMTON-AUSGABE                                                                      	*
+;*      AW32-Alarm-Programm  Version 1.0                                                      	*
 ;*                                                                                              *
 ;*      Revision vom 16. Dezember 2013                                                          *
 ;*                                                                                              *
@@ -430,25 +415,38 @@ Set_PWM
 ;*      Klasse: 5AEL                                                                            *
 ;*      Version: 1.0                                                                            *
 ;*                                                                       			                  *
-;*      Ein Alarmotn wird als Rechteckimpuls augegeben.                                         *                         		
+;*      Ein Alarmotn wird als Rechteckimpuls augegeben. Es wird zwischen 2 Tönen hin und        *
+;*      her gewechselt.                                                                    			*
 ;*                                                                                              *
 ;*                                                                                              *
 ;*      Variabeln:                                                                  		        *
 ;*      Ton_Timer       ds      1T                                                              *
 ;*      Ton_Select      ds      1T                                                              * 
-;*      Ton_Pointer     ds      2T                                                              *
-;*      Frequenz        ds      2T                                                              *
+;*      T_High          ds      1T                                                              *
+;*      T_Low           ds      1T                                                              *
 ;*                                                                                              *
-;*      Eingang:                                                                 	 	            *
-;*      jsr   Alarmton                                                     											*
-;*                                                                                              *                                                                                            
 ;*      Include:                                                                              	*
 ;*      INCLUDE 'Alarmton.inc'                                            											*
 ;*                                                                                              *
+;*      Eingang:                                                                 	 	            *
+;*      jsr   Alarmton                                                     											*
+;*                                                                                              *
+;*                                                                                              *
 ;************************************************************************************************
 
-TONDAUER       EQU     100T
+TONDAUER       EQU     20T
 
+Init_Alarmton
+
+      lda   #$07
+      sta   T_High
+      lda   #$AE        
+      sta   T_Low
+  
+      lda   #1T
+      sta   Ton_Select    
+  
+      rts
 
 Alarmton
 
@@ -459,7 +457,7 @@ Alarmton
       lda     Ton_Timer
       inca
       sta     Ton_Timer
-      
+
       rts
 
 Ton_Steps           
@@ -467,31 +465,41 @@ Ton_Steps
       lda     #0T
       sta     Ton_Timer
             
+
       lda     Ton_Select
-      cmpa    #0T             ;Ton-Anzahl
+      cmpa    #0T             ;Ton-Nummer
       beq     Ton_0
       cmpa    #1T
       beq     Ton_1
-      
+
       rts     
                                             
 Ton_0            
-      ldhx    #1396T          ;A7 3520Hz
-      sthx    Frequenz
-      jsr     Init_PWM
+  
+      lda  #$07
+      sta  T_High 
+      lda  #$AE        
+      sta  T_Low 
+
       lda     #1T
       sta     Ton_Select
-      
       rts
+
                         
-Ton_1                           
-      ldhx    #2352T          ;C7 2093Hz       
-      sthx    Frequenz
-      jsr     Init_PWM
+Ton_1
+  
+      lda  #$06
+      sta  T_High 
+      lda  #$66        
+      sta  T_Low
+
       lda     #0T
       sta     Ton_Select
-      
       rts
+     
+     
+     
+     
      
      
             
@@ -529,7 +537,7 @@ Ton_1
 LED_PORT      EQU     PORTD
 TASTER_PORT   EQU     PORTF
 
-ZEIT_START    EQU     500T
+ZEIT_START    EQU     400T
 
 
 
@@ -1362,8 +1370,8 @@ TasteCEnde
 ;************************************************************************************************
 
 VERZOEGERUNG    EQU   50T
-BLINK_ROT       EQU   0
-BLINK_GRUEN     EQU   1
+BLINK_ROT       EQU   6
+BLINK_GRUEN     EQU   7
 BLINK_PORT      EQU   PORTD
 
 ;************************************************************************************************
@@ -1384,7 +1392,7 @@ Blink_Rot
 
           bclr  BLINK_GRUEN,BLINK_PORT
         
-          lda   Blink_Counter               	; Verzögerung 100 x 10ms = 1s
+          lda   Blink_Counter               	; Verzögerung 50 x 10ms = 0,5s
           inca
           sta   Blink_Counter
           cmpa  #VERZOEGERUNG                         
@@ -1524,9 +1532,9 @@ Main_Init
                 sta     PORTE
 
                 mov     #%11111111,PTADD        ; Data Direction für PORTA
-                mov     #%00000000,PTBDD        ; Data Direction für PORTB                
+                mov     #%00000001,PTBDD        ; Data Direction für PORTB                
                 mov     #%00000000,PTCDD        ; DDR für Port C: 
-                mov     #%00000011,PTDDD        ; DDR für PORT D: 
+                mov     #%11000000,PTDDD        ; DDR für PORT D: 
                 mov     #%00000000,PTEDD        ; DDR für PORT E: 
                 mov     #%00000000,PTFDD        ; DDR für PORT F: 
                 mov     #%00000011,PTGDD        ; DDR für PORT G: 
@@ -1534,9 +1542,13 @@ Main_Init
                 jsr     Init_MCU                ; [.] Controller Clock usw.       
                 jsr     Init_Realtime           ; [Timer.inc] Realtime + PWM-Kanäle
                 
-;***************Eigene Inits*********************************************************************************
+;**************| Eigene Inits |******************************************************************              
                 
                 jsr     Init_Menue
+                
+                jsr     Init_Alarmton
+                jsr     Init_Alarmtimer
+                
                 jsr     Init_LCD                ; [LCD_Disp_8Bit.inc] Initialisiert das LCD
                 
                 
@@ -1697,7 +1709,7 @@ Dummy_ISR
                 DC.W    Dummy_ISR       ; $FFE4+$FFE5   Vector TMP2CH1                
                 DC.W    Dummy_ISR       ; $FFE6+$FFE7   Vector TPM2CH0                
                 DC.W    Dummy_ISR       ; $FFE8+$FFE9   Vector TPM1OVF                
-                DC.W    Dummy_ISR       ; $FFEA+$FFEB   Vector TPM1CH5
+                DC.W    Timer_Over      ; $FFEA+$FFEB   Vector TPM1CH5
                 DC.W    Dummy_ISR       ; $FFEC+$FFED   Vector TPM1CH4
                 DC.W    Dummy_ISR       ; $FFEE+$FFEF   Vector TPM1CH3
                 DC.W    Dummy_ISR       ; $FFF0+$FFF1   Vector TPM1CH2
