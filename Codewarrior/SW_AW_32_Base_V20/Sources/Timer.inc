@@ -26,7 +26,7 @@ Init_Realtime
 
 Realtime
        pshh
-       lda      #%011110101              ; Acknowledge
+       lda      #%011110101               ; Acknowledge
        sta      SRTISC                 
        
        lda      RealTimeCounter

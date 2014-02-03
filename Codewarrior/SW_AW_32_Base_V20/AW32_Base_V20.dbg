@@ -1,11 +1,11 @@
 ;************************************************************************************************
-;*      AW32-Base-Programm  Version 2.0                                                         *
+;*      AW32-    -Programm  Version 2.0                                                         *
 ;*                                                                                              *
 ;*      Revision vom 21. Oktober 2011                                                           *
 ;*                                                                                              *
-;*      Name:                                                                                   *
-;*      Klasse:                                                                                 *
-;*      Version:                                                                                *
+;*      Name: Valentin Bernard                                                                  *
+;*      Klasse: 4ael                                                                            *
+;*      Version: -.-                                                                            *
 ;*                                                                                              *
 ;*      Programmiert auf einem Target mit 4,9152 MHz                                            *
 ;*      Interner Busclock mit FLL auf 19,6608 MHz hinaufgetaktet                                *
@@ -258,9 +258,9 @@ RealTimeCounter ds      1T
 Main_Loop
                 sta     SRS                     ; Watchdog zurücksetzen
                 
-                lda     TimerFlag               ; TimerFlag = 0 --> Realtime noch nicht um
-                beq     Main_Loop               ; TimerFlag <>0 --> Realtime (5 msec) ist um!
-                clr     TimerFlag          
+                ;lda     TimerFlag               ; TimerFlag = 0 --> Realtime noch nicht um
+                ;beq     Main_Loop               ; TimerFlag <>0 --> Realtime (5 msec) ist um!
+                ;clr     TimerFlag          
                 
                 
                 ; Hier kommen deine Routinen hinein
@@ -409,7 +409,7 @@ Init_Realtime
 
 Realtime
        pshh
-       lda      #%011110101              ; Acknowledge
+       lda      #%011110101               ; Acknowledge
        sta      SRTISC                 
        
        lda      RealTimeCounter

@@ -53,9 +53,9 @@ VECTOR_START    EQU     $0000FFCC
 Main_Loop
                 sta     SRS                     ; Watchdog zurücksetzen
                 
-                lda     TimerFlag               ; TimerFlag = 0 --> Realtime noch nicht um
-                beq     Main_Loop               ; TimerFlag <>0 --> Realtime (5 msec) ist um!
-                clr     TimerFlag          
+                ;lda     TimerFlag               ; TimerFlag = 0 --> Realtime noch nicht um
+                ;beq     Main_Loop               ; TimerFlag <>0 --> Realtime (5 msec) ist um!
+                ;clr     TimerFlag          
                 
                 
                 ; Hier kommen deine Routinen hinein
