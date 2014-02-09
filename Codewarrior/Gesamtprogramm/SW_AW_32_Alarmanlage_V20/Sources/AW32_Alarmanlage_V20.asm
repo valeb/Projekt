@@ -61,8 +61,7 @@ Main_Loop
                 
                 jsr     Tastenroutine 
                 jsr     Menue
-                jsr     Update_LCD
-                              
+                jsr     Update_LCD                              
                              
                 bra     Main_Loop
 

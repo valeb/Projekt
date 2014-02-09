@@ -8,8 +8,7 @@
 ;*      Klasse: 5AEL                                                                            * 
 ;*      Version: 1.0                                                                            * 
 ;*                                                                                              *
-;*      Timer für die Alarmausgabe. Frequenz veränderbar über T_Low und T_High.                  * 
-;*                                                                                              *
+;*      Timer für die Alarmausgabe. Frequenz veränderbar über T_Low und T_High.                 *
 ;*                                                                                              *
 ;*      In Init kopieren:                                                                       * 
 ;*      jsr     Init_Alarmtimer                                                                 * 
@@ -61,7 +60,7 @@ Init_Alarmtimer
 Timer_Over
 
     pshh
-  
+    
     lda   TPM1C5SC
     mov   #%01010000,TPM1C5SC   ;Flag löschen
   
@@ -71,18 +70,22 @@ Timer_Over
 
     lda   TPM1C5VH
     adc   T_High		 
-    sta   TPM1C5VH 
+    sta   TPM1C5VH
     
+    lda   Alarm_Flag
+    cmp   #%00000001
+    bne   Ende_Timer
+   
     brset 0,PORTB,Aus
     
     bset  0,PORTB
     
-    bra   RT_Timer
+    bra   Ende_Timer
     
 Aus 
     bclr  0,PORTB    
 
-RT_Timer
+Ende_Timer
    
     pulh
 

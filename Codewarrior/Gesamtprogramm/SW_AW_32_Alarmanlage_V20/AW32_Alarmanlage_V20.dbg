@@ -228,11 +228,11 @@ TasteC_Flag       ds      1T
 TasteC_Counter    ds      1T
 
 Bewegung_Flag     ds      1T
+Bewegung_Counter  ds      2T
+
 RFID_Flag         ds      1T
 PW_Flag           ds      1T
-
-T_High            ds      1T                                                             
-T_Low             ds      1T
+Alarm_Flag        ds      1T
                   
 
 ;************************************************************************************************
@@ -246,6 +246,8 @@ T_Low             ds      1T
 Blink_Counter     ds      1T
 
 Alarm_Timer       ds      2T
+T_High            ds      1T                                                             
+T_Low             ds      1T
                 
 Pointer_Schritte  ds      2T                                                             
 Zurueck           ds      2T                                                            
@@ -300,8 +302,7 @@ Main_Loop
                 
                 jsr     Tastenroutine 
                 jsr     Menue
-                jsr     Update_LCD
-                              
+                jsr     Update_LCD                              
                              
                 bra     Main_Loop
 
@@ -326,8 +327,7 @@ Main_Loop
 ;*      Klasse: 5AEL                                                                            * 
 ;*      Version: 1.0                                                                            * 
 ;*                                                                                              *
-;*      Timer für die Alarmausgabe. Frequenz veränderbar über T_Low und T_High.                  * 
-;*                                                                                              *
+;*      Timer für die Alarmausgabe. Frequenz veränderbar über T_Low und T_High.                 *
 ;*                                                                                              *
 ;*      In Init kopieren:                                                                       * 
 ;*      jsr     Init_Alarmtimer                                                                 * 
@@ -379,7 +379,7 @@ Init_Alarmtimer
 Timer_Over
 
     pshh
-  
+    
     lda   TPM1C5SC
     mov   #%01010000,TPM1C5SC   ;Flag löschen
   
@@ -389,18 +389,22 @@ Timer_Over
 
     lda   TPM1C5VH
     adc   T_High		 
-    sta   TPM1C5VH 
+    sta   TPM1C5VH
     
+    lda   Alarm_Flag
+    cmp   #%00000001
+    bne   Ende_Timer
+   
     brset 0,PORTB,Aus
     
     bset  0,PORTB
     
-    bra   RT_Timer
+    bra   Ende_Timer
     
 Aus 
     bclr  0,PORTB    
 
-RT_Timer
+Ende_Timer
    
     pulh
 
@@ -434,13 +438,13 @@ RT_Timer
 ;*                                                                                              *
 ;************************************************************************************************
 
-TONDAUER       EQU     20T
+TONDAUER       EQU     30T
 
 Init_Alarmton
 
       lda   #$07
       sta   T_High
-      lda   #$AE        
+      lda   #$47        
       sta   T_Low
   
       lda   #1T
@@ -478,7 +482,7 @@ Ton_0
   
       lda  #$07
       sta  T_High 
-      lda  #$AE        
+      lda  #$47        
       sta  T_Low 
 
       lda     #1T
@@ -488,9 +492,9 @@ Ton_0
                         
 Ton_1
   
-      lda  #$06
+      lda  #$05
       sta  T_High 
-      lda  #$66        
+      lda  #$74        
       sta  T_Low
 
       lda     #0T
@@ -537,7 +541,7 @@ Ton_1
 LED_PORT      EQU     PORTD
 TASTER_PORT   EQU     PORTF
 
-ZEIT_START    EQU     300T
+ZEIT_START    EQU     200T
 
 
 
@@ -571,8 +575,7 @@ StartText
           ldhx    #LCD_Oben
           sthx    DestPointer
           lda     #32T
-          sta     TextLenght
-     
+          sta     TextLenght     
           jsr     CopyText
         
           
@@ -607,8 +610,7 @@ StartText2
           ldhx    #LCD_Oben
           sthx    DestPointer
           lda     #32T
-          sta     TextLenght
-     
+          sta     TextLenght     
           jsr     CopyText
         
           
@@ -618,15 +620,15 @@ StartText2
           sthx    Schritte_Counter
           
           cphx    #ZEIT_START
-          beq     ZU_M1
+          beq     ZU_Inaktiv
           
           rts
 
 
           
-;********| Deaktieviert |************************************************************************                                                                        
+;********| Deaktiviert |************************************************************************                                                                        
 
-Menue1
+Inaktiv
           
           ;jsr     Check-RFID
           jsr     Blink_Gruen
@@ -638,24 +640,24 @@ Menue1
           sthx    DestPointer
           lda     #32T
           sta     TextLenght
-     
           jsr     CopyText
           
           ;Aktieviertung 
           lda     TasteA_Flag
           cmpa    #%00000001        
-          beq     ZU_M2
+          beq     ZU_Aktiv
                     
           rts
           
                                           
 ;********| Aktiviert |***************************************************************************
 
-Menue2      
+Aktiv      
           
           ;jsr     Passwort
           ;jsr     Check-RFID
-          jsr     Bewegungsmelder         
+          jsr     Bewegungsmelder
+                   
           jsr     Blink_Rot
           
           ;Ausgabe: "Alarm Aktiv"
@@ -664,22 +666,23 @@ Menue2
           ldhx    #LCD_Oben
           sthx    DestPointer
           lda     #32T
-          sta     TextLenght
-          
+          sta     TextLenght          
           jsr     CopyText          
           
           ;Austrittsbedingungen 
+          
           lda     TasteA_Flag
           cmpa    #%00000001        
-          beq     ZU_M1
+          beq     ZU_Inaktiv
+          
           
           ;lda     RFID-Flag
           
           ;lda     PW_Flag
            
           lda     Bewegung_Flag
-          cmpa    #%00000001
-          beq     ZU_M3          
+          cmpa    #%10011111        
+          beq     ZU_Alarm
           
           rts
           
@@ -687,8 +690,8 @@ Menue2
 
 ;Die Adresse des nächsten Schrittes wird in den Pointer geladen
          
-ZU_M3
-          ldhx    #Menue3
+ZU_Alarm
+          ldhx    #Alarm
           sthx    Pointer_Schritte
           
           ldhx    #0T
@@ -702,8 +705,10 @@ ZU_M3
           
           rts
           
-ZU_M2
-          ldhx    #Menue2
+ZU_Aktiv
+          clr     Alarm_Flag
+                    
+          ldhx    #Aktiv
           sthx    Pointer_Schritte
           
           ldhx    #0T
@@ -717,8 +722,10 @@ ZU_M2
           
           rts
                     
-ZU_M1			
-          ldhx    #Menue1
+ZU_Inaktiv
+          clr     Alarm_Flag
+			
+          ldhx    #Inaktiv
           sthx    Pointer_Schritte
           
           ldhx    #0T
@@ -732,12 +739,14 @@ ZU_M1
           
 ;********| Ausgelöst |***************************************************************************
 
-Menue3    
+Alarm    
+          bset    0,Alarm_Flag
+          bset    6,PORTD
            
           jsr     Bewegungsmelder
           
           lda     Bewegung_Flag
-          cmpa    #%00000001
+          cmpa    #%00000000
           bne     No_Reset
           
           ldhx    #0T
@@ -750,13 +759,12 @@ No_Reset
           ;jsr     Check-RFID  
    
           ;Ausgabe Text 
-          ldhx    #Text_Aktiv
+          ldhx    #Text_Alarm
           sthx    SourcePointer
           ldhx    #LCD_Oben
           sthx    DestPointer
           lda     #32T
-          sta     TextLenght
-          
+          sta     TextLenght          
           jsr     CopyText        
           
           
@@ -767,13 +775,13 @@ No_Reset
           
           lda     TasteA_Flag
           cmpa    #%00000001        
-          beq     ZU_M1
+          beq     ZU_Inaktiv
           
           ldhx    Alarm_Timer
           incx
           sthx    Alarm_Timer
           cphx    #40000T
-          beq     ZU_M2
+          beq     ZU_Aktiv
 
           rts          
           
@@ -800,9 +808,9 @@ Text_Aktiv
           dc.b    ' Alarm Aktiv    '
           dc.b    '                '
           
-Text_Ein
+Text_Alarm
                   ;----------------
-          dc.b    '     Alarm!     '
+          dc.b    '    Alarm!!     '
           dc.b    '                '
                 INCLUDE 'LCD_Disp_8bit.inc'     ; Routine für das LCD Display
 ;************************************************************************************************
@@ -1452,33 +1460,69 @@ Ende_Gruen
 ;*      Klasse: 5AEL                                                                            *
 ;*      Version: 1.0                                                                            *
 ;*                                                                                              *
-;*      Auslesen des Bewegungsmelders                                                           *
+;*      Auslesen des Bewegungsmelders. Nach 4 Aufeinanderfolgenden High-Pegeln mit nicht        *
+;*      mehr als einer Minute Zeit dazwischen wird der Alarm ausgesößt. Erst die 1-minütige     *
+;*      Abwesenheit von High-Pegeln resetiert das Bewegungs-Flag wieder, und der Alarm-         *
+;*      Countdown kann beginnen.                                                                *
 ;*                                                                                              *
 ;*      Variabeln:                                                                              *
-;*      Bewegung_Flag    ds  1T                                                                 *
+;*      Bewegung_Flag    ds   1T                                                                *
+;*      Bewegung_Counter ds   2T                                                                *
 ;*                                                                                              *
 ;*      Eingang:                                                                                *
-;*      jsr     Blinklicht                                                                      *
-;*                                                                                              *
-;*      In Init kopieren:                                                                       *
-;*      jsr   Init_Blinklicht                                                                   *
+;*      jsr     Bewegungsmelder                                                                 *
 ;*                                                                                              *
 ;*      In ASM kopieren                                                                         *
 ;*      INCLUDE 'Bewegungsmelder.inc'        ; Routine für das Blicklicht                       *
+;*                                                                                              *  
 ;************************************************************************************************
 
-BEWEGUNG_PIN     EQU     4
-BEWEGUNG_PORT    EQU     PORTF
+BEWEGUNG_PIN      EQU     1
+BEWEGUNG_PORT     EQU     PORTB
+RESET_ZEIT        EQU     6000T
 
 Bewegungsmelder
 
-        brclr     BEWEGUNG_PIN,BEWEGUNG_PORT,Ende_Bewegung
+        brset     BEWEGUNG_PIN,BEWEGUNG_PORT,Setzen
         
+        bclr       7,Bewegung_Flag
+        
+        ldhx      Bewegung_Counter
+        incx
+        sthx      Bewegung_Counter
+        cphx      #RESET_ZEIT
+        blo       Ende_Bewegung
+        
+        clr       Bewegung_Flag
+        clr       Bewegung_Counter
+               
+	      bra	      Ende_Bewegung		
+
+Setzen
+        brset     7,Bewegung_Flag,Ende_Bewegung
+        bset      7,Bewegung_Flag
+            
+        brset     0,Bewegung_Flag,Flag_1
         bset      0,Bewegung_Flag
+        bra       Ende_Bewegung
+Flag_1        
+        ;brset     1,Bewegung_Flag,Flag_2
+        bset      1,Bewegung_Flag
+        ;bra       Ende_Bewegung
+;Flag_2        
+        ;brset     2,Bewegung_Flag,Flag_3
+        bset      2,Bewegung_Flag
+        ;bra       Ende_Bewegung
+;Flag_3        
+        ;brset     3,Bewegung_Flag,Flag_4
+        bset      3,Bewegung_Flag
+        ;bra       Ende_Bewegung
+;Flag_4            
+        bset      4,Bewegung_Flag
+        bra       Ende_Bewegung  
         
 Ende_Bewegung
         
-        clr       Bewegung_Flag
         rts   
                 INCLUDE 'Passwort.inc'          ; Routine zur Passworteingabe
 ;************************************************************************************************
@@ -1547,7 +1591,7 @@ Main_Init
                 jsr     Init_Menue
                 
                 jsr     Init_Alarmton
-                ;jsr     Init_Alarmtimer
+                jsr     Init_Alarmtimer
                 
                 jsr     Init_LCD                ; [LCD_Disp_8Bit.inc] Initialisiert das LCD
                 
@@ -1690,22 +1734,22 @@ Realtime
       adc     #$20
       sta     TPM1C0VH 
                 
-      lda      RealTimeCounter
+      lda     RealTimeCounter
       inca
-      sta      RealTimeCounter           ; 6 x 1,6666ms = 10 msec genau
-      cmpa     #6T
-      bne      Exit_Realtime
+      sta     RealTimeCounter           ; 6 x 1,6666ms = 10 msec genau
+      cmpa    #6T
+      bne     Exit_Realtime
       clra
-      sta      RealTimeCounter
+      sta     RealTimeCounter
              
-      lda      #1T
-      sta      TimerFlag
+      lda     #1T
+      sta     TimerFlag
 
 
 Exit_Realtime       
-       pulh
+      pulh
 
-       rti
+      rti
                 INCLUDE 'Dummy_Isr.inc'         ; Für fehlgeschlagene (unerwünschte) Interrupts
 ;************************************************************************************************
 ;*                                                                                              *

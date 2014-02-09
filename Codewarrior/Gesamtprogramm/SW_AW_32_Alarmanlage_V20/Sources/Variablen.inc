@@ -18,11 +18,11 @@ TasteC_Flag       ds      1T
 TasteC_Counter    ds      1T
 
 Bewegung_Flag     ds      1T
+Bewegung_Counter  ds      2T
+
 RFID_Flag         ds      1T
 PW_Flag           ds      1T
-
-T_High            ds      1T                                                             
-T_Low             ds      1T
+Alarm_Flag        ds      1T
                   
 
 ;************************************************************************************************
@@ -36,6 +36,8 @@ T_Low             ds      1T
 Blink_Counter     ds      1T
 
 Alarm_Timer       ds      2T
+T_High            ds      1T                                                             
+T_Low             ds      1T
                 
 Pointer_Schritte  ds      2T                                                             
 Zurueck           ds      2T                                                            

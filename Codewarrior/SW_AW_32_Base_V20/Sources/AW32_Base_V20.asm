@@ -75,6 +75,6 @@ Main_Loop
 
 
                 INCLUDE 'Init.inc'              ; Hier startet der µC / Initialisierungen
-                INCLUDE 'Timer.inc'             ; Alles für die Timer (Realtime)
+                INCLUDE 'Realtime_T1CH0.inc'             ; Alles für die Timer (Realtime)
                 INCLUDE 'Dummy_Isr.inc'         ; Für fehlgeschlagene (unerwünschte) Interrupts
                 INCLUDE 'Vectors.inc'           ; Vektoren usw.

@@ -30,7 +30,7 @@
 LED_PORT      EQU     PORTD
 TASTER_PORT   EQU     PORTF
 
-ZEIT_START    EQU     300T
+ZEIT_START    EQU     200T
 
 
 
@@ -64,8 +64,7 @@ StartText
           ldhx    #LCD_Oben
           sthx    DestPointer
           lda     #32T
-          sta     TextLenght
-     
+          sta     TextLenght     
           jsr     CopyText
         
           
@@ -100,8 +99,7 @@ StartText2
           ldhx    #LCD_Oben
           sthx    DestPointer
           lda     #32T
-          sta     TextLenght
-     
+          sta     TextLenght     
           jsr     CopyText
         
           
@@ -111,15 +109,15 @@ StartText2
           sthx    Schritte_Counter
           
           cphx    #ZEIT_START
-          beq     ZU_M1
+          beq     ZU_Inaktiv
           
           rts
 
 
           
-;********| Deaktieviert |************************************************************************                                                                        
+;********| Deaktiviert |************************************************************************                                                                        
 
-Menue1
+Inaktiv
           
           ;jsr     Check-RFID
           jsr     Blink_Gruen
@@ -131,24 +129,24 @@ Menue1
           sthx    DestPointer
           lda     #32T
           sta     TextLenght
-     
           jsr     CopyText
           
           ;Aktieviertung 
           lda     TasteA_Flag
           cmpa    #%00000001        
-          beq     ZU_M2
+          beq     ZU_Aktiv
                     
           rts
           
                                           
 ;********| Aktiviert |***************************************************************************
 
-Menue2      
+Aktiv      
           
           ;jsr     Passwort
           ;jsr     Check-RFID
-          jsr     Bewegungsmelder         
+          jsr     Bewegungsmelder
+                   
           jsr     Blink_Rot
           
           ;Ausgabe: "Alarm Aktiv"
@@ -157,22 +155,23 @@ Menue2
           ldhx    #LCD_Oben
           sthx    DestPointer
           lda     #32T
-          sta     TextLenght
-          
+          sta     TextLenght          
           jsr     CopyText          
           
           ;Austrittsbedingungen 
+          
           lda     TasteA_Flag
           cmpa    #%00000001        
-          beq     ZU_M1
+          beq     ZU_Inaktiv
+          
           
           ;lda     RFID-Flag
           
           ;lda     PW_Flag
            
           lda     Bewegung_Flag
-          cmpa    #%00000001
-          beq     ZU_M3          
+          cmpa    #%10011111        
+          beq     ZU_Alarm
           
           rts
           
@@ -180,8 +179,8 @@ Menue2
 
 ;Die Adresse des nächsten Schrittes wird in den Pointer geladen
          
-ZU_M3
-          ldhx    #Menue3
+ZU_Alarm
+          ldhx    #Alarm
           sthx    Pointer_Schritte
           
           ldhx    #0T
@@ -195,8 +194,10 @@ ZU_M3
           
           rts
           
-ZU_M2
-          ldhx    #Menue2
+ZU_Aktiv
+          clr     Alarm_Flag
+                    
+          ldhx    #Aktiv
           sthx    Pointer_Schritte
           
           ldhx    #0T
@@ -210,8 +211,10 @@ ZU_M2
           
           rts
                     
-ZU_M1			
-          ldhx    #Menue1
+ZU_Inaktiv
+          clr     Alarm_Flag
+			
+          ldhx    #Inaktiv
           sthx    Pointer_Schritte
           
           ldhx    #0T
@@ -225,12 +228,14 @@ ZU_M1
           
 ;********| Ausgelöst |***************************************************************************
 
-Menue3    
+Alarm    
+          bset    0,Alarm_Flag
+          bset    6,PORTD
            
           jsr     Bewegungsmelder
           
           lda     Bewegung_Flag
-          cmpa    #%00000001
+          cmpa    #%00000000
           bne     No_Reset
           
           ldhx    #0T
@@ -243,13 +248,12 @@ No_Reset
           ;jsr     Check-RFID  
    
           ;Ausgabe Text 
-          ldhx    #Text_Aktiv
+          ldhx    #Text_Alarm
           sthx    SourcePointer
           ldhx    #LCD_Oben
           sthx    DestPointer
           lda     #32T
-          sta     TextLenght
-          
+          sta     TextLenght          
           jsr     CopyText        
           
           
@@ -260,13 +264,13 @@ No_Reset
           
           lda     TasteA_Flag
           cmpa    #%00000001        
-          beq     ZU_M1
+          beq     ZU_Inaktiv
           
           ldhx    Alarm_Timer
           incx
           sthx    Alarm_Timer
           cphx    #40000T
-          beq     ZU_M2
+          beq     ZU_Aktiv
 
           rts          
           
@@ -293,7 +297,7 @@ Text_Aktiv
           dc.b    ' Alarm Aktiv    '
           dc.b    '                '
           
-Text_Ein
+Text_Alarm
                   ;----------------
-          dc.b    '     Alarm!     '
+          dc.b    '    Alarm!!     '
           dc.b    '                '

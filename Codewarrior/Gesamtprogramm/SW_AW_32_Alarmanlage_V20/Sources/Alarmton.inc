@@ -26,13 +26,13 @@
 ;*                                                                                              *
 ;************************************************************************************************
 
-TONDAUER       EQU     20T
+TONDAUER       EQU     30T
 
 Init_Alarmton
 
       lda   #$07
       sta   T_High
-      lda   #$AE        
+      lda   #$47        
       sta   T_Low
   
       lda   #1T
@@ -70,7 +70,7 @@ Ton_0
   
       lda  #$07
       sta  T_High 
-      lda  #$AE        
+      lda  #$47        
       sta  T_Low 
 
       lda     #1T
@@ -80,9 +80,9 @@ Ton_0
                         
 Ton_1
   
-      lda  #$06
+      lda  #$05
       sta  T_High 
-      lda  #$66        
+      lda  #$74        
       sta  T_Low
 
       lda     #0T

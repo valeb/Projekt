@@ -65,19 +65,19 @@ Realtime
       adc     #$20
       sta     TPM1C0VH 
                 
-      lda      RealTimeCounter
+      lda     RealTimeCounter
       inca
-      sta      RealTimeCounter           ; 6 x 1,6666ms = 10 msec genau
-      cmpa     #6T
-      bne      Exit_Realtime
+      sta     RealTimeCounter           ; 6 x 1,6666ms = 10 msec genau
+      cmpa    #6T
+      bne     Exit_Realtime
       clra
-      sta      RealTimeCounter
+      sta     RealTimeCounter
              
-      lda      #1T
-      sta      TimerFlag
+      lda     #1T
+      sta     TimerFlag
 
 
 Exit_Realtime       
-       pulh
+      pulh
 
-       rti
+      rti
