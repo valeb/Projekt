@@ -37,16 +37,10 @@
 ; 9 --> PF1
 ; 0 --> PF0
 
-
 Check_PW
 
+      rts
         
-        
-
-        rts
-        
-        
-
 Passwort
 
   dc.w    1

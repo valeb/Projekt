@@ -1,5 +1,0 @@
-Interrupt ~40kHz
-LUT
-2 Töne
-
-laalüüülaaalüüülaalüüülaalüüülaalüüü

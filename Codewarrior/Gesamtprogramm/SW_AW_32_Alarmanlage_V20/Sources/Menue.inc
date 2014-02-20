@@ -196,6 +196,8 @@ ZU_Alarm
           
 ZU_Aktiv
           clr     Alarm_Flag
+          bclr    0,PORTB
+          clr     Bewegung_Flag
                     
           ldhx    #Aktiv
           sthx    Pointer_Schritte
@@ -213,6 +215,8 @@ ZU_Aktiv
                     
 ZU_Inaktiv
           clr     Alarm_Flag
+          bclr    0,PORTB
+          clr     Bewegung_Flag
 			
           ldhx    #Inaktiv
           sthx    Pointer_Schritte
