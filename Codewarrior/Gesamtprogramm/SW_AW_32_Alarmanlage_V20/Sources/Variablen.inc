@@ -10,19 +10,26 @@
 TimerFlag         ds      1T
 RealTimeCounter   ds      1T
 
-TasteA_Flag       ds      1T                                                            
-TasteA_Counter    ds      1T                                                             
-TasteB_Flag       ds      1T                                                              
-TasteB_Counter    ds      1T                                                              
-TasteC_Flag       ds      1T                                                              
-TasteC_Counter    ds      1T
-
 Bewegung_Flag     ds      1T
 Bewegung_Counter  ds      2T
 
 RFID_Flag         ds      1T
 PW_Flag           ds      1T
 Alarm_Flag        ds      1T
+
+T0_Flag           ds      1T                                                                
+T1_Flag           ds      1T                                                                
+T2_Flag           ds      1T                                                                
+T3_Flag           ds      1T                                                                 
+T4_Flag           ds      1T                                                                
+T5_Flag           ds      1T                                                                
+T6_Flag           ds      1T                                                                 
+T7_Flag           ds      1T                                                                
+T8_Flag           ds      1T                                                                
+T9_Flag           ds      1T                                                                
+TOK_Flag          ds      1T                                                                
+TVOR_Flag         ds      1T                                                                 
+TZUR_Flag         ds      1T     
                   
 
 ;************************************************************************************************
@@ -57,4 +64,19 @@ DelayCounter      ds      1T              ; Grässlich - Delay für LCD...
 CopyCounter       ds      1T                                                             
 SourcePointer     ds      2T              ; Pointer für Copy-Routinen                     
 DestPointer       ds      2T              ; Ebenfalls für die Copy-Routinen              
-TextLenght        ds      1T                                                              
+TextLenght        ds      1T                                                   
+
+   
+T0_Counter        ds      1T                                                                 
+T1_Counter        ds      1T                                                                
+T2_Counter        ds      1T                                                                 
+T3_Counter        ds      1T                                                                 
+T4_Counter        ds      1T                                                                  
+T5_Counter        ds      1T                                                                
+T6_Counter        ds      1T                                                                
+T7_Counter        ds      1T                                                                 
+T8_Counter        ds      1T                                                                 
+T9_Counter        ds      1T                                                                 
+TOK_Counter       ds      1T                                                                 
+TVOR_Counter      ds      1T                                                              
+TZUR_Counter      ds      1T                                                                           

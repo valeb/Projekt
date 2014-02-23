@@ -1,0 +1,10 @@
+.\ram\lcd_ili9320.o: user\Lcd_ILI9320.c
+.\ram\lcd_ili9320.o: user\Lcd.h
+.\ram\lcd_ili9320.o: .\cm3\stm32f10x.h
+.\ram\lcd_ili9320.o: .\cm3\core_cm3.h
+.\ram\lcd_ili9320.o: d:\Keil\ARM\RV31\INC\stdint.h
+.\ram\lcd_ili9320.o: .\cm3\system_stm32f10x.h
+.\ram\lcd_ili9320.o: .\user\stm32f10x_conf.h
+.\ram\lcd_ili9320.o: .\library\inc\misc.h
+.\ram\lcd_ili9320.o: .\cm3\stm32f10x.h
+.\ram\lcd_ili9320.o: user\Lcd_font.h

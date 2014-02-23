@@ -1,0 +1,11 @@
+.\out\rc522.o: user\rc522.c
+.\out\rc522.o: user\Init_SYS.h
+.\out\rc522.o: .\cm3\stm32f10x.h
+.\out\rc522.o: .\cm3\core_cm3.h
+.\out\rc522.o: C:\Keil\ARM\RV31\INC\stdint.h
+.\out\rc522.o: .\cm3\system_stm32f10x.h
+.\out\rc522.o: .\user\stm32f10x_conf.h
+.\out\rc522.o: .\library\inc\misc.h
+.\out\rc522.o: .\cm3\stm32f10x.h
+.\out\rc522.o: C:\Keil\ARM\RV31\INC\stdio.h
+.\out\rc522.o: user\rc522.h

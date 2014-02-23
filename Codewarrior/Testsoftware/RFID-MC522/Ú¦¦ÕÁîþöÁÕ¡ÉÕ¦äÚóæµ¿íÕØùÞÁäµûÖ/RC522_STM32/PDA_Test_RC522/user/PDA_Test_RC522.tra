@@ -1,0 +1,21 @@
+*** Creating Trace Output File 'PDA_Test_RC522.tra' Ok.
+### Preparing for ADS-LD.
+### Creating ADS-LD Command Line
+### List of Objects: adding '"stm32f10x.o"'
+### List of Objects: adding '"main.o"'
+### List of Objects: adding '"sys.o"'
+### List of Objects: adding '"rc522.o"'
+### ADS-LD Command completed:
+--cpu Cortex-M3 "stm32f10x.o" "main.o" "sys.o" "rc522.o" --ro-base 0x08000000 --entry 0x08000000 --rw-base 0x20000000 --entry Reset_Handler --first __Vectors --strict --autoat --summary_stderr --info summarysizes --map --xref --callgraph --symbols 
+--info sizes --info totals --info unused --info veneers 
+ --list ".\PDA_Test_RC522.map" -o "PDA_Test_RC522.axf"### Preparing Environment (PrepEnvAds)
+### ADS-LD Output File: 'PDA_Test_RC522.axf'
+### ADS-LD Command File: 'PDA_Test_RC522.lnp'
+### Checking for dirty Components...
+### Creating CmdFile 'PDA_Test_RC522.lnp', Handle=0x000002A4
+### Writing '.lnp' file
+### ADS-LD Command file 'PDA_Test_RC522.lnp' is ready.
+### ADS-LD: About to start ADS-LD Thread.
+### ADS-LD: executed with 0 errors
+### Updating obj list
+### LDADS_file() completed.

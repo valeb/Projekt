@@ -132,7 +132,7 @@ Inaktiv
           jsr     CopyText
           
           ;Aktieviertung 
-          lda     TasteA_Flag
+          lda     T0_Flag
           cmpa    #%00000001        
           beq     ZU_Aktiv
                     
@@ -160,7 +160,7 @@ Aktiv
           
           ;Austrittsbedingungen 
           
-          lda     TasteA_Flag
+          lda     T0_Flag
           cmpa    #%00000001        
           beq     ZU_Inaktiv
           
@@ -186,8 +186,7 @@ ZU_Alarm
           ldhx    #0T
           sthx    Schritte_Counter
           
-          bset    CHECKED, TasteA_Flag       ;Verhindert dass ein Tastendruck öfters verwendet wird
-          bset    CHECKED, TasteB_Flag
+          bset    CHECKED, T0_Flag       ;Verhindert dass ein Tastendruck öfters verwendet wird
           
           lda     #0T
           sta     Zurueck
@@ -205,8 +204,7 @@ ZU_Aktiv
           ldhx    #0T
           sthx    Schritte_Counter
           
-          bset    CHECKED, TasteA_Flag
-          bset    CHECKED, TasteB_Flag
+          bset    CHECKED, T0_Flag
           
           lda     #0T
           sta     Zurueck
@@ -224,8 +222,7 @@ ZU_Inaktiv
           ldhx    #0T
           sthx    Schritte_Counter
           
-          bset    CHECKED, TasteA_Flag
-          bset    CHECKED, TasteB_Flag
+          bset    CHECKED, T0_Flag
           
                     
           rts                 
@@ -266,7 +263,7 @@ No_Reset
           ;lda     RFID_Flag
           ;lda     PW_Flag
           
-          lda     TasteA_Flag
+          lda     T0_Flag
           cmpa    #%00000001        
           beq     ZU_Inaktiv
           

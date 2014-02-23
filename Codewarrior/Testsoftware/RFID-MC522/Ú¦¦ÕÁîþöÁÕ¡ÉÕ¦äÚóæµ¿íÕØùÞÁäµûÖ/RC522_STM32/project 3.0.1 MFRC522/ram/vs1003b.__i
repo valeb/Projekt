@@ -1,0 +1,1 @@
+-c --cpu Cortex-M3 -D__MICROLIB -g -O0 --apcs=interwork -I.\cm3 -I.\library\inc -I.\library\src -I.\user -I "A:\keil\ARM\INC" -I "A:\keil\ARM\INC\ST\STM32F10x" -o ".\ram\vs1003b.o" --omf_browse ".\ram\vs1003b.crf" --depend ".\ram\vs1003b.d" "user\Vs1003b.c"

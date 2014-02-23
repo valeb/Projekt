@@ -1,0 +1,89 @@
+<html>
+<body>
+<pre>
+<h1>µVision Build Log</h1>
+<h2>Project:</h2>
+A:\keil\stm32\project 3.0.1\project.uvproj
+Project File Date:  11/16/2011
+
+<h2>Output:</h2>
+compiling project.c...
+.\user\stm32f10x_conf.h(35): warning:  #14-D: extra text after expected end of preprocessing directive
+.\user\stm32f10x_conf.h:    #include "stm32f10x_flash.h" */
+.\user\stm32f10x_conf.h:                                 ^
+.\user\Init_SYS.h(10): warning:  #1-D: last line of file ends without a newline
+.\user\Init_SYS.h:   #endif
+.\user\Init_SYS.h:         ^
+.\user\Init_SYS.h: project.c: 2 warnings, 0 errors
+project.c - 0 Error(s), 2 Warning(s).
+Build target 'Target 1'
+assembling startup_stm32f10x_hd.s...
+compiling system_stm32f10x.c...
+compiling project.c...
+.\user\Init_SYS.h(10): warning:  #1-D: last line of file ends without a newline
+.\user\Init_SYS.h:   #endif
+.\user\Init_SYS.h:         ^
+.\user\Init_SYS.h: project.c: 1 warning, 0 errors
+compiling Init_SYS.c...
+user\Init_SYS.h(10): warning:  #1-D: last line of file ends without a newline
+user\Init_SYS.h:   #endif
+user\Init_SYS.h:         ^
+user\Init_SYS.c(4): warning:  #1-D: last line of file ends without a newline
+user\Init_SYS.c:   }
+user\Init_SYS.c:    ^
+user\Init_SYS.c: user\Init_SYS.c: 2 warnings, 0 errors
+linking...
+Program Size: Code=352 RO-data=320 RW-data=0 ZI-data=1632  
+FromELF: creating hex file...
+".\out\project.axf" - 0 Error(s), 3 Warning(s).
+Build target 'Target 1'
+compiling Init_SYS.c...
+user\Init_SYS.h(10): warning:  #1-D: last line of file ends without a newline
+user\Init_SYS.h:   #endif
+user\Init_SYS.h:         ^
+user\Init_SYS.h: user\Init_SYS.c: 1 warning, 0 errors
+linking...
+Program Size: Code=352 RO-data=320 RW-data=0 ZI-data=1632  
+FromELF: creating hex file...
+".\out\project.axf" - 0 Error(s), 1 Warning(s).
+Build target 'Target 1'
+compiling project.c...
+compiling Init_SYS.c...
+linking...
+Program Size: Code=352 RO-data=320 RW-data=0 ZI-data=1632  
+FromELF: creating hex file...
+".\out\project.axf" - 0 Error(s), 0 Warning(s).
+Build target 'Target 1'
+compiling Init_SYS.c...
+linking...
+Program Size: Code=352 RO-data=320 RW-data=0 ZI-data=1632  
+FromELF: creating hex file...
+".\out\project.axf" - 0 Error(s), 0 Warning(s).
+Build target 'Target 1'
+compiling Init_SYS.c...
+user\Init_SYS.c(3): error:  #20: identifier "RCC_CR" is undefined
+user\Init_SYS.c:   {RCC_CR->PLLON=0x01;
+user\Init_SYS.c:    ^
+user\Init_SYS.c: user\Init_SYS.c: 0 warnings, 1 error
+Target not created
+Build target 'Target 1'
+compiling Init_SYS.c...
+user\Init_SYS.c(3): error:  #44: expression must have pointer type
+user\Init_SYS.c:   {RCC->CR->PLLON=0x01;
+user\Init_SYS.c:    ^
+user\Init_SYS.c: user\Init_SYS.c: 0 warnings, 1 error
+Target not created
+Build target 'Target 1'
+compiling Init_SYS.c...
+user\Init_SYS.c(3): error:  #137: expression must be a modifiable lvalue
+user\Init_SYS.c:   {RCC_CR_PLLON=0x01;
+user\Init_SYS.c:    ^
+user\Init_SYS.c: user\Init_SYS.c: 0 warnings, 1 error
+Target not created
+Build target 'Target 1'
+compiling Init_SYS.c...
+user\Init_SYS.c(3): error:  #154: expression must have struct or union type
+user\Init_SYS.c:   {RCC->CR.PLLON=0x01;
+user\Init_SYS.c:    ^
+user\Init_SYS.c: user\Init_SYS.c: 0 warnings, 1 error
+Target not created

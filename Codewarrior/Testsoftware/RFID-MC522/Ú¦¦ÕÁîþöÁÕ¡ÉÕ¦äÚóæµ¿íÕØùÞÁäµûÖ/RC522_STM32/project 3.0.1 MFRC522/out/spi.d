@@ -1,0 +1,9 @@
+.\out\spi.o: user\Spi.c
+.\out\spi.o: .\cm3\stm32f10x.h
+.\out\spi.o: .\cm3\core_cm3.h
+.\out\spi.o: d:\Keil\ARM\RV31\INC\stdint.h
+.\out\spi.o: .\cm3\system_stm32f10x.h
+.\out\spi.o: .\user\stm32f10x_conf.h
+.\out\spi.o: .\library\inc\misc.h
+.\out\spi.o: .\cm3\stm32f10x.h
+.\out\spi.o: user\Spi.h

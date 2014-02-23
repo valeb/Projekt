@@ -1,0 +1,25 @@
+*** Creating Trace Output File '.\ram\project.tra' Ok.
+### Preparing for ADS-LD.
+### Creating ADS-LD Command Line
+### List of Objects: adding '".\ram\startup_stm32f10x_hd.o"'
+### List of Objects: adding '".\ram\retarget.o"'
+### List of Objects: adding '".\ram\misc.o"'
+### List of Objects: adding '".\ram\project.o"'
+### List of Objects: adding '".\ram\init_sys.o"'
+### List of Objects: adding '".\ram\rc522.o"'
+### List of Objects: adding '".\ram\lcd_ili9320.o"'
+### ADS-LD Command completed:
+--cpu Cortex-M3 ".\ram\startup_stm32f10x_hd.o" ".\ram\retarget.o" ".\ram\misc.o" ".\ram\project.o" ".\ram\init_sys.o" ".\ram\rc522.o" ".\ram\lcd_ili9320.o" --library_type=microlib --strict --scatter ".\ram\project.sct" 
+--autoat --summary_stderr --info summarysizes --map --xref --callgraph --symbols 
+--info sizes --info totals --info unused --info veneers 
+ --list ".\ram\project.map" -o ".\ram\project.axf"### Preparing Environment (PrepEnvAds)
+### ADS-LD Output File: '.\ram\project.axf'
+### ADS-LD Command File: '.\ram\project.lnp'
+### Checking for dirty Components...
+### Creating CmdFile '.\ram\project.lnp', Handle=0x00000D24
+### Writing '.lnp' file
+### ADS-LD Command file '.\ram\project.lnp' is ready.
+### ADS-LD: About to start ADS-LD Thread.
+### ADS-LD: executed with 0 errors
+### Updating obj list
+### LDADS_file() completed.

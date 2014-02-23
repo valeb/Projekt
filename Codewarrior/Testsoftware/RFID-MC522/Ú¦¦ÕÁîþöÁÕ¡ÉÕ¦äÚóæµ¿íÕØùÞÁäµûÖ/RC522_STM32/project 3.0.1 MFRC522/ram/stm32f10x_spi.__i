@@ -1,0 +1,1 @@
+-c --cpu Cortex-M3 -D__MICROLIB -g -O0 --apcs=interwork -I.\cm3 -I.\library\inc -I.\library\src -I.\user -I "A:\keil\ARM\INC" -I "A:\keil\ARM\INC\ST\STM32F10x" -o ".\ram\stm32f10x_spi.o" --omf_browse ".\ram\stm32f10x_spi.crf" --depend ".\ram\stm32f10x_spi.d" "library\src\stm32f10x_spi.c"

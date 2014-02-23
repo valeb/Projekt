@@ -1,0 +1,1 @@
+-c --cpu Cortex-M3 -D__MICROLIB -g -O0 --apcs=interwork -I.\cm3 -I.\library\inc -I.\library\src -I.\user -I "A:\keil\ARM\INC" -I "A:\keil\ARM\INC\ST\STM32F10x" -DVECT_TAB_RAM -o ".\ram\system_stm32f10x.o" --omf_browse ".\ram\system_stm32f10x.crf" --depend ".\ram\system_stm32f10x.d" "cm3\system_stm32f10x.c"
