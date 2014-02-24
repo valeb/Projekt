@@ -303,19 +303,19 @@ Main_Loop
 ;*      jsr   Check_RFID											                                                  *
 ;*                                                                                              *
 ;*      Init:                                                                       		        *
-;*      jsr   Init_RFID 		  	                                                                *
+;*      jsr   Init_SPI 		  	                                                                *
 ;*                                                                                              *
 ;************************************************************************************************
 
 
-Init_RFID
+Init_SPI
     mov   #%11110100,SPI1C1   ; SPI Aktiviert als Master
 ;           ||||||||
 ;           ||||||||_____  Shifter directiom.  0 = 7..0
 ;           |||||||______  SS Output enable = 0
 ;           ||||||_______  Clock Pahse, 0 = Middle o. Cycle
 ;           |||||________  Clock Polarity 0 = Active High
-;           ||||_________  MSTR, 0 = Master
+;           ||||_________  MSTR, 1 = Master
 ;           |||__________  Transmit Interrupt enable
 ;           ||___________  SPI enable
 ;           |____________  Interrupt enable
@@ -348,6 +348,7 @@ Init_RFID
 
 Check_RFID
 
+      
       
       
       rts
@@ -383,7 +384,7 @@ Main_Init
                 jsr     Init_MCU                ; [.] Controller Clock usw.       
                 jsr     Init_Realtime           ; [Timer.inc] Realtime + PWM-Kanäle
                 
-                jsr     Init_RFID
+                jsr     Init_SPI
                 
                 cli                             ; Interrupts freigeben
 

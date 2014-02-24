@@ -20,12 +20,12 @@
 ;*      jsr   Check_RFID											                                                  *
 ;*                                                                                              *
 ;*      Init:                                                                       		        *
-;*      jsr   Init_RFID 		  	                                                                *
+;*      jsr   Init_SPI 		  	                                                                *
 ;*                                                                                              *
 ;************************************************************************************************
 
 
-Init_RFID
+Init_SPI
     mov   #%11110100,SPI1C1   ; SPI Aktiviert als Master
 ;           ||||||||
 ;           ||||||||_____  Shifter directiom.  0 = 7..0

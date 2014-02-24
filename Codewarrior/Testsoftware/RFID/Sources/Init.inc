@@ -28,7 +28,7 @@ Main_Init
                 jsr     Init_MCU                ; [.] Controller Clock usw.       
                 jsr     Init_Realtime           ; [Timer.inc] Realtime + PWM-Kanäle
                 
-                jsr     Init_RFID
+                jsr     Init_SPI
                 
                 cli                             ; Interrupts freigeben
 
