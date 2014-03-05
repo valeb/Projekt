@@ -11,6 +11,7 @@
 ;*                                                                                              *
 ;*      Variabeln:                                                                              *
 ;*      PW_Flag     ds    1T                                                                    *
+;*      PW_Counter  ds    1T                                                                    *
 ;*                                                                                              *
 ;*      Eingang:                                                                                *
 ;*      jsr     Check_PW                                                                        *
@@ -23,14 +24,14 @@
 ;*                                                                                              *      
 ;************************************************************************************************
 
-; Enter --> PD1
-; Zurück --> PD0
-; Vor --> PD2
-; 1 --> PD3
-; 2 --> PD4
-; 3 --> PF6
-; 4 --> PF5
-; 5 --> PF7
+; OK --> PD1
+; ZUR --> PD0
+; VOR --> PD2
+; 1 --> PD3 
+; 2 --> PD4 
+; 3 --> PF6 
+; 4 --> PF5 
+; 5 --> PF7 
 ; 6 --> PF4
 ; 7 --> PF3
 ; 8 --> PF2
@@ -38,6 +39,21 @@
 ; 0 --> PF0
 
 Check_PW
+
+      lda     #%00000001  
+      cmpa    TOK_Flag
+      bne     PW_Weiter
+      
+      bset    0,TOK_Flag
+      bset    7,PW_Flag
+
+PW_Weiter
+      
+      brclr   7,PW_Flag,PW_Ende
+      
+            
+      
+PW_Ende
 
       rts
         

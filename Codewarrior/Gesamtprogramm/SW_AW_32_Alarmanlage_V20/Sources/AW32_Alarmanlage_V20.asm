@@ -34,7 +34,6 @@ VECTOR_START    EQU     $0000FFCC
 
                 INCLUDE 'AW32regs.inc'          ; Register    
                 INCLUDE 'Variablen.inc'
-                INCLUDE 'Equates.inc'
 
 
 
@@ -76,7 +75,7 @@ Main_Loop
 ;************************************************************************************************
 
                 INCLUDE 'Timerinterrupt_V20.inc'; Timerinterrupt für die Tonausgabe
-                INCLUDE 'Alarmton.inc'          ; Tonausgabe
+                INCLUDE 'Alarmton_LUT.inc'          ; Tonausgabe
                 INCLUDE 'Menue.inc'             ; Routine für das Menü 
                 INCLUDE 'LCD_Disp_8bit.inc'     ; Routine für das LCD Display
                 INCLUDE 'Tastenroutine.inc'     ; Routine für die Abfrage der Taster

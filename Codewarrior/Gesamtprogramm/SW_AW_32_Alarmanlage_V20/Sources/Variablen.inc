@@ -41,20 +41,20 @@ TZUR_Flag         ds      1T
                 ORG     E_RAM_START
 
 Blink_Counter     ds      1T
+PW_Counter        ds      1T
+TValue            ds      1T
 
 Alarm_Timer       ds      2T
-T_High            ds      1T                                                             
-T_Low             ds      1T
+Ton_Timer         ds      1T                                                           
+Ton_Select        ds      1T                                                             
+T_High            ds      1T                                                              
+T_Low             ds      1T                                                              
+Pointer_LOW       ds      2T                                                              
+Pointer_HIGH      ds      2T                                                              
                 
 Pointer_Schritte  ds      2T                                                             
 Zurueck           ds      2T                                                            
-Schritte_Counter  ds      2T 
-
-Ton_Timer         ds      1T                                                             
-Ton_Select        ds      1T                                                               
-Ton_Pointer       ds      2T                                                              
-Frequenz          ds      2T 
-PWM_Kanal_1       ds      2T                                                             
+Schritte_Counter  ds      2T                            
 
 LCD_Pointer       ds      2T              ; Pointer auf die aktuelle LCD-Routine          
 LCD_Counter       ds      1T                                                             

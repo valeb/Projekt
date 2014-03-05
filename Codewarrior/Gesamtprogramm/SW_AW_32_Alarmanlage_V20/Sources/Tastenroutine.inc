@@ -36,7 +36,8 @@
 ;*      TUP_Counter   ds      1T                                                                *
 ;*      TVOR_Flag     ds      1T                                                                * 
 ;*      TZUR_Counter  ds      1T                                                                *
-;*                                                                                              *
+;*      TValue        ds      1T                                                                *
+;*                                                                                              *    
 ;*      In Hauptloop kopieren:                                                                  *
 ;*      jsr     Tastenroutine                                                                   *
 ;*                                                                                              *                                                                 *
@@ -71,7 +72,10 @@ CHECKED       EQU     1
 
 Tastenroutine 
 
-;Taste 1       
+        lda    #$FF
+        sta    TValue   
+
+;Taste 0       
         
         brset  0, PORTF, SetzeT0            ; frage ab ob Taster gedrückt wurde
         
@@ -86,6 +90,8 @@ SetzeT0
         cmpa   #ENTPRELLZEIT
         bne    T0Ende
         bset   PRESSED, T0_Flag             ; wenn gedrückt, setze PRESSED-Bit
+        lda    #$00
+        sta    TValue         
         
 T0Ende
                         
@@ -104,7 +110,8 @@ SetzeT9
         cmpa   #ENTPRELLZEIT
         bne    T9Ende
         bset   PRESSED, T9_Flag             ; wenn gedrückt, setze PRESSED-Bit
-        
+        lda    #$09
+        sta    TValue 
 T9Ende
         
 
@@ -124,7 +131,8 @@ SetzeT8
         cmpa   #ENTPRELLZEIT
         bne    T8Ende
         bset   PRESSED, T8_Flag             ; wenn gedrückt, setze PRESSED-Bit
-        
+        lda    #$08
+        sta    TValue         
 T8Ende
         
 
@@ -144,7 +152,8 @@ SetzeT7
         cmpa   #ENTPRELLZEIT
         bne    T7Ende
         bset   PRESSED, T7_Flag             ; wenn gedrückt, setze PRESSED-Bit
-        
+        lda    #$07
+        sta    TValue         
 T7Ende
         
 
@@ -164,7 +173,8 @@ SetzeT6
         cmpa   #ENTPRELLZEIT
         bne    T0Ende
         bset   PRESSED, T6_Flag             ; wenn gedrückt, setze PRESSED-Bit
-        
+        lda    #$06
+        sta    TValue         
 T6Ende
         
 
@@ -184,7 +194,8 @@ SetzeT5
         cmpa   #ENTPRELLZEIT
         bne    T5Ende
         bset   PRESSED, T5_Flag             ; wenn gedrückt, setze PRESSED-Bit
-        
+        lda    #$05
+        sta    TValue         
 T5Ende
         
 
@@ -204,7 +215,8 @@ SetzeT4
         cmpa   #ENTPRELLZEIT
         bne    T4Ende
         bset   PRESSED, T4_Flag             ; wenn gedrückt, setze PRESSED-Bit
-        
+        lda    #$04
+        sta    TValue         
 T4Ende
         
 
@@ -224,7 +236,8 @@ SetzeT3
         cmpa   #ENTPRELLZEIT
         bne    T3Ende
         bset   PRESSED, T3_Flag             ; wenn gedrückt, setze PRESSED-Bit
-        
+        lda    #$03
+        sta    TValue         
 T3Ende
         
 
@@ -244,7 +257,8 @@ SetzeT2
         cmpa   #ENTPRELLZEIT
         bne    T2Ende
         bset   PRESSED, T2_Flag             ; wenn gedrückt, setze PRESSED-Bit
-        
+        lda    #$02
+        sta    TValue         
 T2Ende
         
 
@@ -263,7 +277,8 @@ SetzeT1
         cmpa   #ENTPRELLZEIT
         bne    T1Ende
         bset   PRESSED, T1_Flag             ; wenn gedrückt, setze PRESSED-Bit
-        
+        lda    #$01
+        sta    TValue        
 T1Ende
         
 
@@ -282,7 +297,8 @@ SetzeTVOR
         cmpa   #ENTPRELLZEIT
         bne    TVOREnde
         bset   PRESSED, TVOR_Flag             ; wenn gedrückt, setze PRESSED-Bit
-        
+        lda    #$0A
+        sta    TValue         
 TVOREnde
         
 
@@ -302,7 +318,8 @@ SetzeTOK
         cmpa   #ENTPRELLZEIT
         bne    TOKEnde
         bset   PRESSED, TOK_Flag             ; wenn gedrückt, setze PRESSED-Bit
-        
+        lda    #$0B
+        sta    TValue         
 TOKEnde
         
 
@@ -322,7 +339,8 @@ SetzeTZUR
         cmpa   #ENTPRELLZEIT
         bne    TZUREnde
         bset   PRESSED, TZUR_Flag             ; wenn gedrückt, setze PRESSED-Bit
-        
+        lda    #$0C
+        sta    TValue         
 TZUREnde
         rts
 
