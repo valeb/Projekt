@@ -94,6 +94,7 @@ SPI1C1:             equ    $00000050                                ;*** SPI1C1 
 SPI1C2:             equ    $00000051                                ;*** SPI1C2 - SPI1 Control Register 2; 0x00000051 ***
 SPI1BR:             equ    $00000052                                ;*** SPI1BR - SPI1 Baud Rate Register; 0x00000052 ***
 SPI1S:              equ    $00000053                                ;*** SPI1S - SPI1 Status Register; 0x00000053 ***
+SPI1D:              equ    $00000055
 IIC1A:              equ    $00000058                                ;*** IIC1A - IIC1 Address Register; 0x00000058 ***
 IIC1F:              equ    $00000059                                ;*** IIC1F - IIC1 Frequency Divider Register; 0x00000059 ***
 IIC1C:              equ    $0000005A                                ;*** IIC1C - IIC1 Control Register; 0x0000005A ***

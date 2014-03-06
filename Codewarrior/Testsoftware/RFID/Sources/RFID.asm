@@ -76,6 +76,7 @@ Main_Loop
 ;************************************************************************************************
 
                 INCLUDE 'RFID.inc'
+                INCLUDE 'MFRC522_Regs.inc'
 
                 INCLUDE 'Init.inc'              ; Hier startet der µC / Initialisierungen
                 INCLUDE 'Timer.inc'             ; Alles für die Timer (Realtime)

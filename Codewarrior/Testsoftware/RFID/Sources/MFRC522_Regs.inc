@@ -3,28 +3,29 @@
 ;*      Hier werden den Registern und Befehlen des MC522 Namen zugewiesen                       *
 ;*                                                                                              *
 ;************************************************************************************************
+
 ;MF522 command bits
 PCD_IDLE              	EQU        $00               ;NO action; cancel current commands
-PCD_AUTHENT          	EQU        $0E               ;verify password key
+PCD_AUTHENT          	  EQU        $0E               ;verify password key
 PCD_RECEIVE           	EQU        $08               ;receive data
 PCD_TRANSMIT          	EQU        $04               ;send data
-PCD_TRANSCEIVE       EQU        $0C               ;send and receive data
-PCD_RESETPHASE     EQU        $0F               ;reset
+PCD_TRANSCEIVE          EQU        $0C               ;send and receive data
+PCD_RESETPHASE          EQU        $0F               ;reset
 PCD_CALCCRC           	EQU        $03               ;CRC check and caculation
 
 ;Mifare_One card command bits
 PICC_REQIDL           	EQU        $26               ;Search the cards that not into sleep mode in the antenna area 
 PICC_REQALL           	EQU        $52               ;Search all the cards in the antenna area
 PICC_ANTICOLL         	EQU        $93               ;prevent conflict
-PICC_SElECTTAG         EQU        $93               ;select card
-PICC_AUTHENT1A        EQU        $60               ;verify A password key
-PICC_AUTHENT1B        EQU        $61               ;verify B password key
+PICC_SElECTTAG          EQU        $93               ;select card
+PICC_AUTHENT1A          EQU        $60               ;verify A password key
+PICC_AUTHENT1B          EQU        $61               ;verify B password key
 PICC_READ             	EQU        $30               ;read 
 PICC_WRITE            	EQU        $A0               ;write
-PICC_DECREMENT      	EQU        $C0               ;deduct value
-PICC_INCREMENT      	EQU        $C1               ;charge up value
+PICC_DECREMENT      	  EQU        $C0               ;deduct value
+PICC_INCREMENT      	  EQU        $C1               ;charge up value
 PICC_RESTORE          	EQU        $C2               ;Restore data into buffer
-PICC_TRANSFER        	EQU        $B0               ;Save data into buffer
+PICC_TRANSFER        	  EQU        $B0               ;Save data into buffer
 PICC_HALT             	EQU        $50               ;sleep mode
 
 
@@ -78,7 +79,7 @@ ModWidthReg           	EQU        $24
 Reserved22            	EQU        $25
 RFCfgReg              	EQU        $26
 GsNReg                	EQU        $27
-CWGsPReg	          	EQU        $28
+CWGsPReg	          	  EQU        $28
 ModGsPReg             	EQU        $29
 TModeReg              	EQU        $2A
 TPrescalerReg         	EQU        $2B
@@ -102,5 +103,5 @@ TestADCReg            	EQU        $3B
 Reserved31            	EQU        $3C   
 Reserved32            	EQU        $3D   
 Reserved33            	EQU        $3E   
-Reserved34		EQU        $3F
+Reserved34		          EQU        $3F
 

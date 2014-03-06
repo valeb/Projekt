@@ -7,7 +7,7 @@
 ;*      Klasse: 5AEL                                                                            *
 ;*      Version: 1.0                                                                            *
 ;*                                                                       			                  *    
-;*      Auslesen des RFID-Tags über serielle Schnittstelle                                			*
+;*      Auslesen des RFID-Tags über synchrone serielle Schnittstelle                       			*
 ;*                                                                                              *
 ;*                                                                                              *
 ;*      Variabeln:                                                                  		        *
@@ -20,7 +20,8 @@
 ;*      jsr   Check_RFID											                                                  *
 ;*                                                                                              *
 ;*      Init:                                                                       		        *
-;*      jsr   Init_SPI 		  	                                                                *
+;*      jsr     Init_SPI 		                                                                    *
+;*      jsr     Init_RFID                                                                       *
 ;*                                                                                              *
 ;************************************************************************************************
 
@@ -62,10 +63,49 @@ Init_SPI
 ;           |____________  nc
 
     rts
+    
+Init_RFID
+
+    ;   Antenne aktivieren
+    lda     #TxControlReg
+    lsla
+    AND     #%1111110
+    ORA     #%1000000 
+    
+    sta     SPI1D
+     
+Delay1
+
+    brclr    7,SPI1S,Delay1
+    
+    lda     SPI1D
+   
+    ORA     #%0000011
+    
+    sta     TempVar
+    
+    lda     #TxControlReg
+    lsla
+    AND     #%1111110
+    ORA     #%1000000 
+    
+    sta     SPI1D
+    
+Delay2
+
+    brclr   7,SPI1S,Delay2
+    
+    lda     TempVar
+    sta     SPI1D
+         
+    rts
+        
 
 Check_RFID
 
+    ;   MFRC5522_Request
+    ;   Status = Ok ?
+    ;   Ausgeben Karte entdeckt
       
       
-      
-      rts
+    rts

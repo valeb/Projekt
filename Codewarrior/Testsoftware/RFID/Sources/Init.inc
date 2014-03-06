@@ -29,6 +29,7 @@ Main_Init
                 jsr     Init_Realtime           ; [Timer.inc] Realtime + PWM-Kanäle
                 
                 jsr     Init_SPI
+                jsr     Init_RFID 
                 
                 cli                             ; Interrupts freigeben
 

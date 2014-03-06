@@ -22,3 +22,4 @@ RealTimeCounter ds      1T
                 ORG     E_RAM_START
                 
 
+TempVar         ds      1T
