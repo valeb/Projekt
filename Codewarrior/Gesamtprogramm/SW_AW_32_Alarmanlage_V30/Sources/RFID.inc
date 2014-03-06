@@ -11,7 +11,8 @@
 ;*                                                                                              *
 ;*                                                                                              *
 ;*      Variabeln:                                                                  		        *
-;*      RFID_Tag    ds    2T                                               											*
+;*      RFID_Flag     ds    2T                                             											*
+;*      TempVar       ds    1T                                                                  *
 ;*                                                                                              *
 ;*      Include:                                                                         	      *
 ;*      INCLUDE RFID.inc                                                   											*
@@ -41,9 +42,9 @@ Init_SPI
     mov   #%00000000,SPI1C2   
 ;           ||||||||
 ;           ||||||||_____  Bidirectional enable
-;           |||||||______  SPI Srtop in Wait mode
+;           |||||||______  SPI Stop in Wait mode
 ;           ||||||_______  nc
-;           |||||________  Bidirictional, Output enable
+;           |||||________  Bidirectional, Output enable
 ;           ||||_________  Mode-Fault enable
 ;           |||__________  nc
 ;           ||___________  nc
@@ -51,7 +52,7 @@ Init_SPI
  
  
 
-    mov   #%01110111,SPI1BR     ; Startet den Timer 1CH2
+    mov   #%01110111,SPI1BR     ; Stellt den SPI_Clock ein
 ;           ||||||||
 ;           ||||||||_____  )
 ;           |||||||______  > Timer Scaler 2..256 (256)
@@ -64,6 +65,18 @@ Init_SPI
 
     rts
     
+SPI_Clock
+
+    pshh
+    
+    lda   #%01110111    
+    sta   SPI1BR
+    
+    pulh 
+    
+    rti   
+    
+    
 Init_RFID
 
     ;   Antenne aktivieren
@@ -74,9 +87,9 @@ Init_RFID
     
     sta     SPI1D
      
-Delay1
+S1Delay
 
-    brclr    7,SPI1S,Delay1
+    brclr    7,SPI1S,S1Delay
     
     lda     SPI1D
    
@@ -86,17 +99,22 @@ Delay1
     
     lda     #TxControlReg
     lsla
-    AND     #%1111110
-    ORA     #%1000000 
+    AND     #%0111110
     
     sta     SPI1D
     
-Delay2
+S2Delay
 
-    brclr   7,SPI1S,Delay2
+    brclr   7,SPI1S,S2Delay
     
     lda     TempVar
     sta     SPI1D
+    
+S3Delay
+
+    brclr   7,SPI1S,S3Delay
+    
+    bclr    6,SPI1C1    
          
     rts
         

@@ -312,7 +312,7 @@ Main_Loop
 
 
 Init_SPI
-    mov   #%11110100,SPI1C1   ; SPI Aktiviert als Master
+    mov   #%01110100,SPI1C1   ; SPI Aktiviert als Master
 ;           ||||||||
 ;           ||||||||_____  Shifter directiom.  0 = 7..0
 ;           |||||||______  SS Output enable = 0
@@ -326,9 +326,9 @@ Init_SPI
     mov   #%00000000,SPI1C2   
 ;           ||||||||
 ;           ||||||||_____  Bidirectional enable
-;           |||||||______  SPI Srtop in Wait mode
+;           |||||||______  SPI Stop in Wait mode
 ;           ||||||_______  nc
-;           |||||________  Bidirictional, Output enable
+;           |||||________  Bidirectional, Output enable
 ;           ||||_________  Mode-Fault enable
 ;           |||__________  nc
 ;           ||___________  nc
@@ -336,7 +336,7 @@ Init_SPI
  
  
 
-    mov   #%01110111,SPI1BR     ; Startet den Timer 1CH2
+    mov   #%01110111,SPI1BR     ; Stellt den SPI_Clock ein
 ;           ||||||||
 ;           ||||||||_____  )
 ;           |||||||______  > Timer Scaler 2..256 (256)
@@ -348,6 +348,18 @@ Init_SPI
 ;           |____________  nc
 
     rts
+    
+SPI_Clock
+
+    pshh
+    
+    lda   #%01110111    
+    sta   SPI1BR
+    
+    pulh 
+    
+    rti   
+    
     
 Init_RFID
 
@@ -371,8 +383,7 @@ Delay1
     
     lda     #TxControlReg
     lsla
-    AND     #%1111110
-    ORA     #%1000000 
+    AND     #%0111110
     
     sta     SPI1D
     
@@ -382,6 +393,10 @@ Delay2
     
     lda     TempVar
     sta     SPI1D
+    
+Delay3
+
+    brclr   7,SPI1S,Delay3    
          
     rts
         
@@ -607,7 +622,7 @@ Next_Clear_Extended
                 rts
                 
                 
-                INCLUDE 'Timer.inc'             ; Alles für die Timer (Realtime)
+                INCLUDE 'Realtime_T1CH0.inc'    ; Alles für die Timer (Realtime)
 ;************************************************************************************************
 ;*                                                                                              *
 ;*      Init_Realtime: Initialisiert den RealTime auf Timer2, CH0                                  *
@@ -618,14 +633,41 @@ Next_Clear_Extended
 ;*                                                                                              *
 ;************************************************************************************************
 
-
-
 Init_Realtime
-        lda       #%011110101             ; Dividiert durch 8192 x 203,451... nsec = 1,6666 msec
-        sta       SRTISC        
 
-        rts
-       
+   mov   #%00000000,TPM1SC     ; Timer 1CH2 STOP
+
+
+   mov   #$20,TPM1C0VH         ; Setzt einen Output Compare nach $6000 Clicks
+   mov   #$00,TPM1C0VL         ; das sind bei dem gegebenen Clock GENAU 1,66666 msec
+                           
+
+   mov   #%01010000,TPM1C0SC   ; Timer 1 Channel 5 Gesetzt für Output Compare $50
+ ;         ||||||||
+ ;         ||||||||_____  not used
+ ;         |||||||______  not used
+ ;         ||||||_______  ELS1A Edge Level Select Bits for Channel 1
+ ;         |||||________  ELS1B [B:A]=[0:1]=Toggle Output con Compare  [0:0]=Software compare only
+ ;         ||||_________  MS1A Mode select for Timer 1  [B:A]=[0:1] = Output compare
+ ;         |||__________  MS1B
+ ;         ||___________  CH1IE 0=Interr. disable  1=Interrupt enable
+ ;         |____________  CH1F  0=No input capt. or Outp.Comp on Pin  1=Input capt. or Outp.Comp on Pin 
+ 
+
+   mov   #%00001000,TPM1SC     ; Startet den Timer 1CH0
+ ;         ||||||||
+ ;         ||||||||_____  PS0  Prescaler : 0:0:0=Clock/1    0:0:1=Clock/2    0:1:0=Clock/4
+ ;         |||||||______  PS1              0:1:1=Clock/8    1:0:0=Clock/16   1:0:1=Clock/32
+ ;         ||||||_______  PS2              1:1:0=Clock/64   1:1:1=Clock/128
+ ;         |||||________  CLKS [A] --> [B:A]  0:0 = TPM OFF  0:1 = Bus rate Clock (BUSCLK)
+ ;         ||||_________  CLKS [B] CLK Source 1:0 = Fixed system Clock (XCLX) 1:1 Ex. Source (TPMxCLK)
+ ;         |||__________  CPWMS Normal Op (0) or Center alligned PWM (1)
+ ;         ||___________  TOIE Timer Interrupt Enable
+ ;         |____________  TOV - Timer Overflow, Read only
+
+   rts
+
+
 
 ;************************************************************************************************
 ;*                                                                                              *
@@ -635,21 +677,29 @@ Init_Realtime
 
 
 Realtime
-       pshh
-       lda      #%011110101              ; Acknowledge
-       sta      SRTISC                 
-       
-       lda      RealTimeCounter
-       inca
-       sta      RealTimeCounter           ; 6 x 1,6666ms = 10 msec genau
-       cmpa     #6T
-       bne      Exit_Realtime
-       clra
-       sta      RealTimeCounter
+      pshh
+      
+      lda     TPM1C0SC
+      mov     #%01010000,TPM1C0SC   ;Flag löschen
+  
+      lda     TPM1C0VL              ; Nächster Interrupt in weiteren $6000 Clicks
+      add     #$00                  ; Also wieder $20 x 203,451 nsec = 1,666 msec GENAU
+      sta     TPM1C0VL	
 
-       
-       lda      #1T
-       sta      TimerFlag
+      lda     TPM1C0VH
+      adc     #$20
+      sta     TPM1C0VH 
+                
+      lda      RealTimeCounter
+      inca
+      sta      RealTimeCounter           ; 6 x 1,6666ms = 10 msec genau
+      cmpa     #6T
+      bne      Exit_Realtime
+      clra
+      sta      RealTimeCounter
+             
+      lda      #1T
+      sta      TimerFlag
 
 
 Exit_Realtime       
@@ -664,11 +714,93 @@ Exit_Realtime
 ;*                                                                                              *
 ;************************************************************************************************
 
-Dummy_ISR
+Dummy_ISR1
          nop            ; Im Prinzip nix tun und sofort wieder raus aus dem Interrupt
          rti
          
          
+Dummy_ISR2
+         nop            ; Im Prinzip nix tun und sofort wieder raus aus dem Interrupt
+         rti
+         
+Dummy_ISR3
+         nop            ; Im Prinzip nix tun und sofort wieder raus aus dem Interrupt
+         rti
+         
+Dummy_ISR4
+         nop            ; Im Prinzip nix tun und sofort wieder raus aus dem Interrupt
+         rti
+                                    
+Dummy_ISR5
+         nop            ; Im Prinzip nix tun und sofort wieder raus aus dem Interrupt
+         rti
+
+Dummy_ISR6
+         nop            ; Im Prinzip nix tun und sofort wieder raus aus dem Interrupt
+         rti
+                          
+Dummy_ISR7
+         nop            ; Im Prinzip nix tun und sofort wieder raus aus dem Interrupt
+         rti
+
+Dummy_ISR8
+         nop            ; Im Prinzip nix tun und sofort wieder raus aus dem Interrupt
+         rti
+         
+         
+Dummy_ISR9
+         nop            ; Im Prinzip nix tun und sofort wieder raus aus dem Interrupt
+         rti
+         
+Dummy_ISR10
+         nop            ; Im Prinzip nix tun und sofort wieder raus aus dem Interrupt
+         rti
+
+Dummy_ISR11
+         nop            ; Im Prinzip nix tun und sofort wieder raus aus dem Interrupt
+         rti
+                                    
+Dummy_ISR12
+         nop            ; Im Prinzip nix tun und sofort wieder raus aus dem Interrupt
+         rti
+
+Dummy_ISR13
+         nop            ; Im Prinzip nix tun und sofort wieder raus aus dem Interrupt
+         rti
+                          
+Dummy_ISR14
+         nop            ; Im Prinzip nix tun und sofort wieder raus aus dem Interrupt
+         rti
+              
+Dummy_ISR15
+         nop            ; Im Prinzip nix tun und sofort wieder raus aus dem Interrupt
+         rti
+         
+         
+Dummy_ISR16
+         nop            ; Im Prinzip nix tun und sofort wieder raus aus dem Interrupt
+         rti
+         
+Dummy_ISR17
+         nop            ; Im Prinzip nix tun und sofort wieder raus aus dem Interrupt
+         rti
+
+Dummy_ISR18
+         nop            ; Im Prinzip nix tun und sofort wieder raus aus dem Interrupt
+         rti
+                                    
+Dummy_ISR19
+         nop            ; Im Prinzip nix tun und sofort wieder raus aus dem Interrupt
+         rti
+
+Dummy_ISR20
+         nop            ; Im Prinzip nix tun und sofort wieder raus aus dem Interrupt
+         rti
+                          
+Dummy_ISR21
+         nop            ; Im Prinzip nix tun und sofort wieder raus aus dem Interrupt
+         rti
+                                                              
                 INCLUDE 'Vectors.inc'           ; Vektoren usw.
 ;************************************************************************************************
 ;*                                                                                              *
@@ -679,31 +811,31 @@ Dummy_ISR
                 ORG   VECTOR_START
 
 
-                DC.W    Realtime        ; $FFCC+$FFCD   Vector RTI
-                DC.W    Dummy_ISR       ; $FFCE+$FFCF   Vector IIC1
-                DC.W    Dummy_ISR       ; $FFD0+$FFD1   Vector ADC1
-                DC.W    Dummy_ISR       ; $FFD2+$FFD3   Vector KEYBOARD
-                DC.W    Dummy_ISR       ; $FFD4+$FFD5   Vector SCI2_TX
-                DC.W    Dummy_ISR       ; $FFD6+$FFD7   Vector SCI2_RX
-                DC.W    Dummy_ISR       ; $FFD8+$FFD9   Vector SCI2_ERR
-                DC.W    Dummy_ISR       ; $FFDA+$FFDB   Vector SCI1_TX
-                DC.W    Dummy_ISR       ; $FFDC+$FFDC   Vector SCI1_RX
-                DC.W    Dummy_ISR       ; $FFDE+$FFDF   Vector SCI1_ERR
-                DC.W    Dummy_ISR       ; $FFE0+$FFE1   Vector SPI1
-                DC.W    Dummy_ISR       ; $FFE2+$FFE3   Vector TPM2OVF                
-                DC.W    Dummy_ISR       ; $FFE4+$FFE5   Vector TMP2CH1                
-                DC.W    Dummy_ISR       ; $FFE6+$FFE7   Vector TPM2CH0                
-                DC.W    Dummy_ISR       ; $FFE8+$FFE9   Vector TPM1OVF                
-                DC.W    Dummy_ISR       ; $FFEA+$FFEB   Vector TPM1CH5
-                DC.W    Dummy_ISR       ; $FFEC+$FFED   Vector TPM1CH4
-                DC.W    Dummy_ISR       ; $FFEE+$FFEF   Vector TPM1CH3
-                DC.W    Dummy_ISR       ; $FFF0+$FFF1   Vector TPM1CH2
-                DC.W    Dummy_ISR       ; $FFF2+$FFF3   Vector TPM1CH1
-                DC.W    Dummy_ISR       ; $FFF4+$FFF5   Vector TPM1CH0
-                DC.W    Dummy_ISR       ; $FFF6+$FFF7   Vector ICG
-                DC.W    Dummy_ISR       ; $FFF8+$FFF9   Vector LVD
-                DC.W    Dummy_ISR       ; $FFFA+$FFFB   Vector_IRQ
-                DC.W    Dummy_ISR       ; $FFFC+$FFFD   Vector SWI
+                DC.W    Dummy_ISR1      ; $FFCC+$FFCD   Vector RTI
+                DC.W    Dummy_ISR2      ; $FFCE+$FFCF   Vector IIC1
+                DC.W    Dummy_ISR3      ; $FFD0+$FFD1   Vector ADC1
+                DC.W    Dummy_ISR4      ; $FFD2+$FFD3   Vector KEYBOARD
+                DC.W    Dummy_ISR5      ; $FFD4+$FFD5   Vector SCI2_TX
+                DC.W    Dummy_ISR6      ; $FFD6+$FFD7   Vector SCI2_RX
+                DC.W    Dummy_ISR7      ; $FFD8+$FFD9   Vector SCI2_ERR
+                DC.W    Dummy_ISR8      ; $FFDA+$FFDB   Vector SCI1_TX
+                DC.W    Dummy_ISR9      ; $FFDC+$FFDC   Vector SCI1_RX
+                DC.W    Dummy_ISR10     ; $FFDE+$FFDF   Vector SCI1_ERR
+                DC.W    SPI_Clock       ; $FFE0+$FFE1   Vector SPI1
+                DC.W    Dummy_ISR12     ; $FFE2+$FFE3   Vector TPM2OVF                
+                DC.W    Dummy_ISR13     ; $FFE4+$FFE5   Vector TMP2CH1                
+                DC.W    Dummy_ISR14     ; $FFE6+$FFE7   Vector TPM2CH0                
+                DC.W    Dummy_ISR15     ; $FFE8+$FFE9   Vector TPM1OVF                
+                DC.W    Dummy_ISR16     ; $FFEA+$FFEB   Vector TPM1CH5
+                DC.W    Dummy_ISR17     ; $FFEC+$FFED   Vector TPM1CH4
+                DC.W    Dummy_ISR18     ; $FFEE+$FFEF   Vector TPM1CH3
+                DC.W    Dummy_ISR19     ; $FFF0+$FFF1   Vector TPM1CH2
+                DC.W    Dummy_ISR20     ; $FFF2+$FFF3   Vector TPM1CH1
+                DC.W    Realtime        ; $FFF4+$FFF5   Vector TPM1CH0
+                DC.W    Dummy_ISR21     ; $FFF6+$FFF7   Vector ICG
+                DC.W    Dummy_ISR21     ; $FFF8+$FFF9   Vector LVD
+                DC.W    Dummy_ISR21     ; $FFFA+$FFFB   Vector_IRQ
+                DC.W    Dummy_ISR21     ; $FFFC+$FFFD   Vector SWI
                 DC.W    Main_Init       ; $FFFE+$FFFF   Vector RESET
                 
 

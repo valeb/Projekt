@@ -1,6 +1,6 @@
 ;************************************************************************************************
 ;*                                                                                              *
-;*      Init_Realtime: Initialisiert den RealTime auf Timer2, CH0                                  *
+;*      Init_Realtime: Initialisiert den RealTime auf Timer1, CH0                               *
 ;*                                                                                              *
 ;*      BusClock: Bei 19,6608 MHz-Quarz ist der Busclock                                        *
 ;*      1/19,6608MHz x 4 = 50,863 nsec x 4 = 203,451 nsec                                       *
@@ -65,19 +65,19 @@ Realtime
       adc     #$20
       sta     TPM1C0VH 
                 
-      lda      RealTimeCounter
+      lda     RealTimeCounter
       inca
-      sta      RealTimeCounter           ; 6 x 1,6666ms = 10 msec genau
-      cmpa     #6T
-      bne      Exit_Realtime
+      sta     RealTimeCounter           ; 6 x 1,6666ms = 10 msec genau
+      cmpa    #6T
+      bne     Exit_Realtime
       clra
-      sta      RealTimeCounter
+      sta     RealTimeCounter
              
-      lda      #1T
-      sta      TimerFlag
+      lda     #1T
+      sta     TimerFlag
 
 
 Exit_Realtime       
-       pulh
+      pulh
 
-       rti
+      rti
