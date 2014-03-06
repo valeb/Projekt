@@ -12,7 +12,7 @@
 ;*      her gewechselt.                                                                        	*
 ;*                                                                                              *
 ;*                                                                                              *
-;*      Variabeln:                                                                          		*
+;*      Variabeln:                                                                          	*
 ;*      Ton_Timer       ds      1T                                                              *
 ;*      Ton_Select      ds      1T                                                              * 
 ;*      T_High          ds      1T                                                              *
@@ -21,22 +21,20 @@
 ;*      Pointer_HIGH    ds      2T                                                              *
 ;*                                                                                              *
 ;*      Include:                                                                              	*
-;*      INCLUDE 'Alarmton.inc'                                            	                		*
+;*      INCLUDE 'Alarmton.inc'                                            	                *
 ;*                                                                                              *
 ;*      In Init kopieren:                                                                       * 
 ;*      jsr     Init_Alarmton                                                                   * 
 ;*                                                                                              *
-;*      Eingang:                                                                             	 	*
-;*      jsr   Alarmton                                                     	                		*
+;*      Eingang:                                                                             	*
+;*      jsr   Alarmton                                                     	                *
 ;*                                                                                              *
 ;*                                                                                              *
 ;************************************************************************************************
 
-TONDAUER       EQU     20T
+TONDAUER       EQU     25T
 
 Init_Alarmton
-
-   ;   bclr  0,Alarm    
 
       lda   #$04
       sta   T_High
@@ -54,8 +52,18 @@ Init_Alarmton
 
 Alarmton
 
-      bset    0,Alarm
-      bset    0,LCD_Licht    
+      bset    0,Alarm_Flag
+      
+      ldhx    Pointer_HIGH
+      lda     0,X
+      cmpa    #$FF
+      bne     No_Pause
+
+Pause      
+      
+      bclr    0,Alarm_Flag
+      
+No_Pause
 
       lda     Ton_Timer
       cmpa    #TONDAUER
@@ -128,45 +136,43 @@ LUT_LOW_Reset
       
 LUT_HIGH
       
+      dc.b       T_D4
+      dc.b       T_F4
+      dc.b       T_G4
+      dc.b       T_G4
+      dc.b       T_G4
+      dc.b       T_Pause
+      dc.b       T_Pause
+      dc.b       T_D4
+      dc.b       T_Dd4
+      dc.b       T_D4
+      dc.b       T_F4
+      dc.b       T_F4
+      dc.b       T_D4
+      dc.b       T_D4
+      dc.b       T_D4
+      dc.b       T_Pause
+      dc.b       T_Pause
+      dc.b       T_D4  
+      dc.b       T_F4
+      dc.b       T_F4
+      dc.b       T_D4
+      dc.b       T_D4
+      dc.b       T_D4
+      dc.b       T_Pause
+      dc.b       T_Pause
+      dc.b       T_D4
       dc.b       T_C4
-      dc.b       T_Cc4
-      dc.b       T_D4
-      dc.b       T_Dd4
-      dc.b       T_E4
-      dc.b       T_F4
-      dc.b       T_Ff4
-      dc.b       T_G4
-      dc.b       T_Gg4
-      dc.b       T_A4
-      dc.b       T_Aa4
-      dc.b       T_H4  
-      dc.b       T_C5
-      dc.b       T_Cc5
-      dc.b       T_D5
-      dc.b       T_Dd5
-      dc.b       T_E5
-      dc.b       T_Dd5
-      dc.b       T_D5
-      dc.b       T_Cc5  
-      dc.b       T_C5
-      dc.b       T_H4
-      dc.b       T_Aa4
-      dc.b       T_A4
-      dc.b       T_Gg4
-      dc.b       T_G4
-      dc.b       T_Ff4
-      dc.b       T_F4
-      dc.b       T_E4
-      dc.b       T_Dd4
-      dc.b       T_D4
-      dc.b       T_Cc4
+      dc.b       T_C4
+      dc.b       T_C4
       dc.b       T_Pause
       dc.b       T_Pause
       dc.b       T_Pause
       dc.b       T_Pause
-      dc.b       T_Pause          
+      dc.b       T_Pause
+      dc.b       T_Pause
 
-
+        
 LUT_HIGH_Ende
 
 
@@ -177,45 +183,41 @@ LUT_HIGH_Ende
 
 LUT_LOW      
      
+      dc.b       T_D4_L
+      dc.b       T_F4_L
+      dc.b       T_G4_L
+      dc.b       T_G4_L
+      dc.b       T_G4_L
+      dc.b       T_Pause
+      dc.b       T_Pause
+      dc.b       T_D4_L
+      dc.b       T_Dd4_L
+      dc.b       T_D4_L
+      dc.b       T_F4_L
+      dc.b       T_F4_L
+      dc.b       T_D4_L
+      dc.b       T_D4_L
+      dc.b       T_D4_L
+      dc.b       T_Pause
+      dc.b       T_Pause
+      dc.b       T_D4_L  
+      dc.b       T_F4_L
+      dc.b       T_F4_L
+      dc.b       T_D4_L
+      dc.b       T_D4_L
+      dc.b       T_D4_L
+      dc.b       T_Pause
+      dc.b       T_Pause
+      dc.b       T_D4_L
       dc.b       T_C4_L
-      dc.b       T_Cc4_L
-      dc.b       T_D4_L
-      dc.b       T_Dd4_L
-      dc.b       T_E4_L
-      dc.b       T_F4_L
-      dc.b       T_Ff4_L
-      dc.b       T_G4_L
-      dc.b       T_Gg4_L
-      dc.b       T_A4_L
-      dc.b       T_Aa4_L
-      dc.b       T_H4_L
-      dc.b       T_C5_L
-      dc.b       T_Cc5_L
-      dc.b       T_D5_L
-      dc.b       T_Dd5_L
-      dc.b       T_E5_L
-      dc.b       T_Dd5_L
-      dc.b       T_D5_L
-      dc.b       T_Cc5_L  
-      dc.b       T_C5_L
-      dc.b       T_H4_L        
-      dc.b       T_Aa4_L
-      dc.b       T_A4_L
-      dc.b       T_Gg4_L
-      dc.b       T_G4_L
-      dc.b       T_Ff4_L
-      dc.b       T_F4_L
-      dc.b       T_E4_L
-      dc.b       T_Dd4_L
-      dc.b       T_D4_L
-      dc.b       T_Cc4_L 
-      dc.b       T_Pause_L
-      dc.b       T_Pause_L
-      dc.b       T_Pause_L
-      dc.b       T_Pause_L
-      dc.b       T_Pause_L         
-
-     
+      dc.b       T_C4_L
+      dc.b       T_C4_L
+      dc.b       T_Pause
+      dc.b       T_Pause
+      dc.b       T_Pause
+      dc.b       T_Pause
+      dc.b       T_Pause
+      dc.b       T_Pause   
      
 LUT_LOW_Ende     
      
@@ -225,7 +227,7 @@ LUT_LOW_Ende
 ;*                                     Konstanten High                                          *
 ;************************************************************************************************
 
-T_Pause         EQU     $00         
+T_Pause         EQU     $FF   
 T_E5            EQU     $0E
 T_Dd5           EQU     $0F
 T_D5            EQU     $10
@@ -250,7 +252,6 @@ T_C4            EQU     $24
 ;************************************************************************************************
 
 
-T_Pause_L       EQU     $1E       
 T_E5_L          EQU     $8F
 T_Dd5_L         EQU     $6D
 T_D5_L          EQU     $58
