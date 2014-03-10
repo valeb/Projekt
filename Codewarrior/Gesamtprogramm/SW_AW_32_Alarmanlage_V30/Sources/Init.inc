@@ -37,7 +37,6 @@ Main_Init
                 
                 jsr     Init_LCD                ; [LCD_Disp_8Bit.inc] Initialisiert das LCD
                 jsr     Init_SPI
-                jsr     Init_RFID
                 
                 
 ;************************************************************************************************                

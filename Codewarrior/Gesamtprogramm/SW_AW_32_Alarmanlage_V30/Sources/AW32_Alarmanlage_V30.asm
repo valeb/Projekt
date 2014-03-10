@@ -84,7 +84,8 @@ Main_Loop
                 INCLUDE 'Blinklichter.inc'      ; Routine für das Blicklicht
                 INCLUDE 'Bewegungsmelder.inc'   ; Bewegungsmelder auslesen
                 INCLUDE 'Passwort.inc'          ; Routine zur Passworteingabe
-                INCLUDE 'RFID.inc'                
+                INCLUDE 'RFID_Test.inc'
+                INCLUDE 'SPI.inc'                
 
                 INCLUDE 'Init.inc'              ; Hier startet der µC / Initialisierungen
                 INCLUDE 'Realtime_T1CH0.inc'    ; Alles für die Timer (Realtime)

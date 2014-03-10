@@ -11,8 +11,10 @@
 ;*                                                                                              *
 ;*                                                                                              *
 ;*      Variabeln:                                                                  		        *
-;*      RFID_Flag     ds    2T                                             											*
-;*      TempVar       ds    1T                                                                  *
+;*    ??RFID_Tag        ds    2T                                           											*
+;*      Counter         ds    1T                                                                *
+;*      Adresse         ds    1T                                                                *
+;*      Daten           ds    1T                                                                *          
 ;*                                                                                              *
 ;*      Include:                                                                         	      *
 ;*      INCLUDE RFID.inc                                                   											*
@@ -21,109 +23,217 @@
 ;*      jsr   Check_RFID											                                                  *
 ;*                                                                                              *
 ;*      Init:                                                                       		        *
-;*      jsr     Init_SPI 		                                                                    *
 ;*      jsr     Init_RFID                                                                       *
 ;*                                                                                              *
 ;************************************************************************************************
 
 
-Init_SPI
-    mov   #%11110100,SPI1C1   ; SPI Aktiviert als Master
-;           ||||||||
-;           ||||||||_____  Shifter directiom.  0 = 7..0
-;           |||||||______  SS Output enable = 0
-;           ||||||_______  Clock Pahse, 0 = Middle o. Cycle
-;           |||||________  Clock Polarity 0 = Active High
-;           ||||_________  MSTR, 1 = Master
-;           |||__________  Transmit Interrupt enable
-;           ||___________  SPI enable
-;           |____________  Interrupt enable
-
-    mov   #%00000000,SPI1C2   
-;           ||||||||
-;           ||||||||_____  Bidirectional enable
-;           |||||||______  SPI Stop in Wait mode
-;           ||||||_______  nc
-;           |||||________  Bidirectional, Output enable
-;           ||||_________  Mode-Fault enable
-;           |||__________  nc
-;           ||___________  nc
-;           |____________  nc
- 
- 
-
-    mov   #%01110111,SPI1BR     ; Stellt den SPI_Clock ein
-;           ||||||||
-;           ||||||||_____  )
-;           |||||||______  > Timer Scaler 2..256 (256)
-;           ||||||_______  )
-;           |||||________  nc
-;           ||||_________  )
-;           |||__________  > Timer Prescaler 1..8 (8)
-;           ||___________  )
-;           |____________  nc
-
-    rts
-    
-SPI_Clock
-
-    pshh
-    
-    lda   #%01110111    
-    sta   SPI1BR
-    
-    pulh 
-    
-    rti   
-    
-    
 Init_RFID
 
-    ;   Antenne aktivieren
-    lda     #TxControlReg
-    lsla
-    AND     #%1111110
-    ORA     #%1000000 
-    
-    sta     SPI1D
-     
-S1Delay
 
-    brclr    7,SPI1S,S1Delay
+  ;//Timer: TPrescaler*TreloadVal/6.78MHz = 24ms
+  ;Write_MFRC522(TModeReg, 0x8D);		//Tauto=1; f(Timer) = 6.78MHz/TPreScaler
+  ;Write_MFRC522(TPrescalerReg, 0x3E);	//TModeReg[3..0] + TPrescalerReg
+  ;Write_MFRC522(TReloadRegL, 30);           
+  ;Write_MFRC522(TReloadRegH, 0);
+
+  ;Write_MFRC522(TxAutoReg, 0x40);		//100%ASK
+  ;Write_MFRC522(ModeReg, 0x3D);		//CRC initilizate value 0x6363	???
+
+    lda     TModeReg
+    sta     Adresse
+    lda     #$8D
+    sta     Daten
+    jsr     Write_RFID
     
-    lda     SPI1D
-   
+    lda     TPrescalerReg
+    sta     Adresse
+    lda     #$3E
+    sta     Daten
+    jsr     Write_RFID
+    
+    lda     TReloadRegL
+    sta     Adresse
+    lda     #30T
+    sta     Daten
+    jsr     Write_RFID
+ 
+    lda     TReloadRegH
+    sta     Adresse
+    lda     #$0
+    sta     Daten
+    jsr     Write_RFID
+
+    lda     TxAutoReg
+    sta     Adresse
+    lda     #$40
+    sta     Daten
+    jsr     Write_RFID
+
+    lda     ModeReg
+    sta     Adresse
+    lda     #$3D
+    sta     Daten
+    jsr     Write_RFID
+      
+    ; Antenne aktivieren
+    lda     #TxControlReg
+    sta     Adresse
+    jsr     Read_RFID 
+    lda     Daten   
     ORA     #%0000011
-    
-    sta     TempVar
-    
-    lda     #TxControlReg
-    lsla
-    AND     #%0111110
-    
-    sta     SPI1D
-    
-S2Delay
+    sta     Daten
+    jsr     Write_RFID
 
-    brclr   7,SPI1S,S2Delay
-    
-    lda     TempVar
-    sta     SPI1D
-    
-S3Delay
-
-    brclr   7,SPI1S,S3Delay
-    
-    bclr    6,SPI1C1    
-         
     rts
         
 
 Check_RFID
 
     ;   MFRC5522_Request
-    ;   Status = Ok ?
-    ;   Ausgeben Karte entdeckt
+    
+    lda     Counter
+    cmpa    #0T
+    bne     Waiting
+    
+    lda     #BitFramingReg
+    sta     Adresse
+    lda     #$07
+    sta     Daten
+    jsr     Write_RFID
+    
+    lda     #CommIEnReg
+    sta     Adresse
+    lda     #$77
+    ORA     #$80
+    sta     Daten
+    jsr     Write_RFID
+    
+    lda     #CommIrqReg
+    sta     Adresse
+    jsr     Read_RFID
+    lda     Daten
+    AND     #%01111111
+    sta     Daten
+    jsr     Write_RFID
+    
+    lda     #FIFOLevelReg
+    sta     Adresse
+    jsr     Read_RFID
+    lda     Daten
+    ORA     #$80
+    sta     Daten
+    jsr     Write_RFID
+       
+    lda     #CommandReg
+    sta     Adresse
+    lda     #PCD_IDLE
+    sta     Daten
+    jsr     Write_RFID
+    
+    lda     #FIFODataReg
+    sta     Adresse
+    lda     #PICC_REQALL
+    sta     Daten
+    jsr     Write_RFID
+    
+    lda     #CommandReg
+    sta     Adresse
+    lda     #PCD_TRANSCEIVE
+    sta     Daten
+    jsr     Write_RFID
+    
+    lda     #BitFramingReg
+    sta     Adresse
+    jsr     Read_RFID
+    lda     Daten
+    ORA     #$80
+    sta     Daten
+    jsr     Write_RFID
+    
+Waiting
+
+    lda     Counter
+    inca
+    sta     Counter
+    cmpa    #3T
+    blo     Ende_RFID
+    
+    lda     #0T
+    sta     Counter
+    
+    lda     BitFramingReg
+    sta     Adresse
+    jsr     Read_RFID
+    lda     Daten
+    sta     Counter
+    
+    lda     #BitFramingReg
+    sta     Adresse
+    jsr     Read_RFID
+    lda     Daten
+    AND     #%01111111
+    sta     Daten
+    jsr     Write_RFID
+    
+    lda     ErrorReg
+    sta     Adresse
+    jsr     Read_RFID
+    lda     Daten
+    cmpa    #$1B
+    beq     Ende_RFID
+    
+    lda     Counter
+    AND     #$77
+    AND     #$01
+    cmpa    #1T
+    beq     Ende_RFID
+    
+    ;an dieser Stelle Sollte ein Tag vorhanen sein?
+    
+    lda     #$FF
+    sta     RFID_Flag
+
       
-      
+Ende_RFID
+   
     rts
+    
+;***** Sende Daten *******************************************************************************    
+
+Write_RFID
+
+    lda     Adresse
+    lsla
+    AND     #%01111110    
+    sta     SPI1D
+    
+S1Delay 
+    brclr   7,SPI1S,S1Delay
+    
+    lda     Daten
+    sta     SPI1D
+
+S2Delay 
+    brclr   7,SPI1S,S2Delay    
+        
+    rts
+  
+;***** Empfange Daten ****************************************************************************  
+    
+Read_RFID
+
+    lda     Adresse
+    lsla
+    AND     #%11111110
+    ORA     #%10000000    
+    sta     SPI1D
+    
+S3Delay
+    brclr    7,SPI1S,S3Delay
+    
+    lda     SPI1D
+    sta     Daten 
+        
+    rts    
+

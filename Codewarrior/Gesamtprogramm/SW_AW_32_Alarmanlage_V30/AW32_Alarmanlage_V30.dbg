@@ -254,7 +254,9 @@ TZUR_Flag         ds      1T
 Blink_Counter     ds      1T
 PW_Counter        ds      1T
 
-TempVar           ds    1T 
+Counter           ds      1T
+Adresse           ds      1T                                                               
+Daten             ds      1T  
 
 Alarm_Timer       ds      2T
 Ton_Timer         ds      1T                                                           
@@ -884,7 +886,7 @@ StartText
           aix     #1T
           sthx    Schritte_Counter
           
-          cphx    #ZEIT_START
+          cphx    #50T
           beq     ZU_StartText2
           
           rts
@@ -897,6 +899,8 @@ ZU_StartText2
           
           ldhx    #0T
           sthx    Schritte_Counter
+          
+          ;jsr     Init_RFID
           
           rts
                    
@@ -930,7 +934,7 @@ StartText2
 
 Inaktiv
           
-          ;jsr     Check-RFID
+          jsr     Check_RFID
           jsr     Blink_Gruen
               
           ;Ausgabe: "Alarm Inaktiv"
@@ -945,6 +949,10 @@ Inaktiv
           ;Aktieviertung 
           lda     T0_Flag
           cmpa    #%00000001        
+          beq     ZU_Aktiv
+          
+          lda     RFID_Flag
+          cmpa    #$FF
           beq     ZU_Aktiv
                     
           rts
@@ -1096,8 +1104,8 @@ Text_Start1
           
 Text_Start2
                   ;----------------
-          dc.b    'Maturaprojekt   '
-          dc.b    '   Alarmanlage  '
+          dc.b    ' Maturaprojekt  '
+          dc.b    '  Alarmanlage   '
 
 Text_Inaktiv
                   ;----------------
@@ -2145,7 +2153,69 @@ EndePW
 
             
                   
-                INCLUDE 'RFID.inc'                
+                INCLUDE 'RFID_Test.inc'
+Check_RFID
+
+    lda     #TestBusReg
+    sta     Adresse
+    lda     #%11111111
+    sta     Daten
+    jsr     Write_RFID
+    
+    lda     #TestBusReg
+    sta     Adresse
+    jsr     Read_RFID
+    lda     Daten
+
+ rts
+
+
+
+
+;***** Sende Daten *******************************************************************************    
+
+Write_RFID
+
+    lda     Adresse
+    lsla
+    AND     #%01111110    
+    sta     SPI1D
+    
+S1Delay 
+    brclr   7,SPI1S,S1Delay
+    
+    lda     Daten
+    sta     SPI1D
+
+S2Delay 
+    brclr   7,SPI1S,S2Delay    
+        
+    rts
+  
+;***** Empfange Daten ****************************************************************************  
+    
+Read_RFID
+
+    lda     Adresse
+    lsla
+    AND     #%11111110
+    ORA     #%10000000    
+    sta     SPI1D
+    
+S3Delay
+    brclr    7,SPI1S,S3Delay
+    
+    lda     #$00
+    sta     SPI1D
+    
+S4Delay
+    brclr    7,SPI1S,S4Delay    
+    
+    sta     Daten 
+        
+    rts    
+
+                INCLUDE 'SPI.inc'                
 ;************************************************************************************************
 ;*      AW32-RFID-Programm  Version 1.0                                                        	*
 ;*                                                                                              *
@@ -2155,28 +2225,19 @@ EndePW
 ;*      Klasse: 5AEL                                                                            *
 ;*      Version: 1.0                                                                            *
 ;*                                                                       			                  *    
-;*      Auslesen des RFID-Tags über synchrone serielle Schnittstelle                       			*
-;*                                                                                              *
-;*                                                                                              *
-;*      Variabeln:                                                                  		        *
-;*      RFID_Flag     ds    2T                                             											*
-;*      TempVar       ds    1T                                                                  *
+;*      Synchrone serielle Schnittstelle                       			                            *
 ;*                                                                                              *
 ;*      Include:                                                                         	      *
-;*      INCLUDE RFID.inc                                                   											*
-;*                                                                                              *
-;*      Eingang:                                                                 	            	*
-;*      jsr   Check_RFID											                                                  *
+;*      INCLUDE 'SPI.inc'                                                   										*
 ;*                                                                                              *
 ;*      Init:                                                                       		        *
 ;*      jsr     Init_SPI 		                                                                    *
-;*      jsr     Init_RFID                                                                       *
 ;*                                                                                              *
 ;************************************************************************************************
 
 
 Init_SPI
-    mov   #%11110100,SPI1C1   ; SPI Aktiviert als Master
+    mov   #%01010100,SPI1C1   ; SPI Aktiviert als Master
 ;           ||||||||
 ;           ||||||||_____  Shifter directiom.  0 = 7..0
 ;           |||||||______  SS Output enable = 0
@@ -2200,10 +2261,10 @@ Init_SPI
  
  
 
-    mov   #%01110111,SPI1BR     ; Stellt den SPI_Clock ein
+    mov   #%01110100,SPI1BR     ; Stellt den SPI_Clock ein
 ;           ||||||||
 ;           ||||||||_____  )
-;           |||||||______  > Timer Scaler 2..256 (256)
+;           |||||||______  > Timer Scaler 2..256 (32)
 ;           ||||||_______  )
 ;           |||||________  nc
 ;           ||||_________  )
@@ -2224,57 +2285,6 @@ SPI_Clock
     
     rti   
     
-    
-Init_RFID
-
-    ;   Antenne aktivieren
-    lda     #TxControlReg
-    lsla
-    AND     #%1111110
-    ORA     #%1000000 
-    
-    sta     SPI1D
-     
-S1Delay
-
-    brclr    7,SPI1S,S1Delay
-    
-    lda     SPI1D
-   
-    ORA     #%0000011
-    
-    sta     TempVar
-    
-    lda     #TxControlReg
-    lsla
-    AND     #%0111110
-    
-    sta     SPI1D
-    
-S2Delay
-
-    brclr   7,SPI1S,S2Delay
-    
-    lda     TempVar
-    sta     SPI1D
-    
-S3Delay
-
-    brclr   7,SPI1S,S3Delay
-    
-    bclr    6,SPI1C1    
-         
-    rts
-        
-
-Check_RFID
-
-    ;   MFRC5522_Request
-    ;   Status = Ok ?
-    ;   Ausgeben Karte entdeckt
-      
-      
-    rts
 
                 INCLUDE 'Init.inc'              ; Hier startet der µC / Initialisierungen
 ;************************************************************************************************
@@ -2316,7 +2326,6 @@ Main_Init
                 
                 jsr     Init_LCD                ; [LCD_Disp_8Bit.inc] Initialisiert das LCD
                 jsr     Init_SPI
-                jsr     Init_RFID
                 
                 
 ;************************************************************************************************                
@@ -2508,7 +2517,7 @@ Dummy_ISR
                 DC.W    Dummy_ISR       ; $FFDA+$FFDB   Vector SCI1_TX
                 DC.W    Dummy_ISR       ; $FFDC+$FFDC   Vector SCI1_RX
                 DC.W    Dummy_ISR       ; $FFDE+$FFDF   Vector SCI1_ERR
-                DC.W    Dummy_ISR       ; $FFE0+$FFE1   Vector SPI1
+                DC.W    SPI_Clock       ; $FFE0+$FFE1   Vector SPI1
                 DC.W    Dummy_ISR       ; $FFE2+$FFE3   Vector TPM2OVF                
                 DC.W    Dummy_ISR       ; $FFE4+$FFE5   Vector TMP2CH1                
                 DC.W    Dummy_ISR       ; $FFE6+$FFE7   Vector TPM2CH0                

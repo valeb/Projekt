@@ -73,7 +73,7 @@ StartText
           aix     #1T
           sthx    Schritte_Counter
           
-          cphx    #ZEIT_START
+          cphx    #50T
           beq     ZU_StartText2
           
           rts
@@ -86,6 +86,8 @@ ZU_StartText2
           
           ldhx    #0T
           sthx    Schritte_Counter
+          
+          ;jsr     Init_RFID
           
           rts
                    
@@ -119,7 +121,7 @@ StartText2
 
 Inaktiv
           
-          ;jsr     Check-RFID
+          jsr     Check_RFID
           jsr     Blink_Gruen
               
           ;Ausgabe: "Alarm Inaktiv"
@@ -134,6 +136,10 @@ Inaktiv
           ;Aktieviertung 
           lda     T0_Flag
           cmpa    #%00000001        
+          beq     ZU_Aktiv
+          
+          lda     RFID_Flag
+          cmpa    #$FF
           beq     ZU_Aktiv
                     
           rts
@@ -285,8 +291,8 @@ Text_Start1
           
 Text_Start2
                   ;----------------
-          dc.b    'Maturaprojekt   '
-          dc.b    '   Alarmanlage  '
+          dc.b    ' Maturaprojekt  '
+          dc.b    '  Alarmanlage   '
 
 Text_Inaktiv
                   ;----------------

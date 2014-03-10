@@ -17,7 +17,7 @@
                 DC.W    Dummy_ISR       ; $FFDA+$FFDB   Vector SCI1_TX
                 DC.W    Dummy_ISR       ; $FFDC+$FFDC   Vector SCI1_RX
                 DC.W    Dummy_ISR       ; $FFDE+$FFDF   Vector SCI1_ERR
-                DC.W    Dummy_ISR       ; $FFE0+$FFE1   Vector SPI1
+                DC.W    SPI_Clock       ; $FFE0+$FFE1   Vector SPI1
                 DC.W    Dummy_ISR       ; $FFE2+$FFE3   Vector TPM2OVF                
                 DC.W    Dummy_ISR       ; $FFE4+$FFE5   Vector TMP2CH1                
                 DC.W    Dummy_ISR       ; $FFE6+$FFE7   Vector TPM2CH0                
