@@ -1,7 +1,7 @@
 ;************************************************************************************************
-;*      AW32-Alarmanlage Version 1.0                                                            *
+;*      AW32-Alarmanlage Version 3.0                                                            *
 ;*                                                                                              *
-;*      Revision vom 13. Dezember 2013                                                          *
+;*      Revision vom 17. Maerz 2014                                                             *
 ;*                                                                                              *
 ;*      Name: Valentin Bernard                                                                  *
 ;*      Klasse: 5ael                                                                            *

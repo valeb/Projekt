@@ -23,7 +23,7 @@ Init_Alarmtimer
   mov   #%00000000,TPM1SC     ; Timer 1CH2 STOP
 
 
-  mov   #$60,TPM1C5VH         ; Setzt einen Output Compare nach $6000 Clicks
+  mov   #$30,TPM1C5VH         ; Setzt einen Output Compare nach $6000 Clicks
   mov   #$00,TPM1C5VL         ; das sind bei dem gegebenen Clock GENAU 5 msec
                            
 

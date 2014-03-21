@@ -19,7 +19,7 @@
 
 
 Init_SPI
-    mov   #%01010100,SPI1C1   ; SPI Aktiviert als Master
+    mov   #%01011100,SPI1C1   ; SPI Aktiviert als Master
 ;           ||||||||
 ;           ||||||||_____  Shifter directiom.  0 = 7..0
 ;           |||||||______  SS Output enable = 0
@@ -43,10 +43,10 @@ Init_SPI
  
  
 
-    mov   #%01110100,SPI1BR     ; Stellt den SPI_Clock ein
+    mov   #%01110000,SPI1BR     ; Stellt den SPI_Clock ein
 ;           ||||||||
 ;           ||||||||_____  )
-;           |||||||______  > Timer Scaler 2..256 (32)
+;           |||||||______  > Timer Scaler 2..256 (2)
 ;           ||||||_______  )
 ;           |||||________  nc
 ;           ||||_________  )
@@ -56,14 +56,4 @@ Init_SPI
 
     rts
     
-SPI_Clock
-
-    pshh
-    
-    lda   #%01110111    
-    sta   SPI1BR
-    
-    pulh 
-    
-    rti   
     

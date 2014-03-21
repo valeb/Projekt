@@ -21,7 +21,7 @@ Main_Init
                 mov     #%00000001,PTBDD        ; Data Direction für PORTB                
                 mov     #%00000000,PTCDD        ; DDR für Port C: 
                 mov     #%11000000,PTDDD        ; DDR für PORT D: 
-                mov     #%00000000,PTEDD        ; DDR für PORT E: 
+                mov     #%11001000,PTEDD        ; DDR für PORT E: 
                 mov     #%00000000,PTFDD        ; DDR für PORT F: 
                 mov     #%00000011,PTGDD        ; DDR für PORT G: 
 
@@ -35,10 +35,11 @@ Main_Init
                 jsr     Init_Alarmton
                 jsr     Init_Alarmtimer
                 
+                bset    3,PORTE
+                
                 jsr     Init_LCD                ; [LCD_Disp_8Bit.inc] Initialisiert das LCD
                 jsr     Init_SPI
-                
-                
+                              
 ;************************************************************************************************                
                 
                 cli                             ; Interrupts freigeben
