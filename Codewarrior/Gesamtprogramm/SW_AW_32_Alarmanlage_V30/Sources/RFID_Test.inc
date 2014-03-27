@@ -2,7 +2,7 @@ Check_RFID
 
     lda     #TestBusReg
     sta     Adresse
-    lda     #%11111110
+    lda     #%10101010
     sta     Daten
     jsr     Write_RFID
     
@@ -21,13 +21,13 @@ Check_RFID
 
 Write_RFID
 
-    brclr   5,SPI1S,Ende_Write
+    brclr   5,SPI1S,Ende_RW
     
     lda     Adresse
     lsla
     AND     #%01111110    
     sta     SPI1D
-    
+    ;NEGA
     bclr    3,PORTE
     
 S1Delay 
@@ -36,6 +36,7 @@ S1Delay
     lda     SPI1D
     
     lda     Daten
+    ;NEGA
     sta     SPI1D
 
 S2Delay 
@@ -45,7 +46,7 @@ S2Delay
     
     bset    3,PORTE
     
-Ende_Write    
+Ende_RW    
         
     rts
   
@@ -53,12 +54,13 @@ Ende_Write
     
 Read_RFID
 
-    brclr   5,SPI1S,Ende_Write    
+    brclr   5,SPI1S,Ende_RW    
         
     lda     Adresse
     lsla
     AND     #%11111110
-    ORA     #%10000000    
+    ORA     #%10000000 
+    ;NEGA
     sta     SPI1D
     
     bclr    3,PORTE
@@ -69,12 +71,14 @@ S3Delay
     lda     SPI1D
     
     lda     #$00
+    ;NEGA
     sta     SPI1D
     
 S4Delay
     brclr    7,SPI1S,S4Delay
     
     lda     SPI1D
+    ;NEGA
     sta     Daten    
     bset    3,PORTE     
         
