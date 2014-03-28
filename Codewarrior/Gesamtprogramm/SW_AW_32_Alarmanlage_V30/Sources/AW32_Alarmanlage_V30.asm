@@ -84,7 +84,7 @@ Main_Loop
                 INCLUDE 'Blinklichter.inc'      ; Routine für das Blicklicht
                 INCLUDE 'Bewegungsmelder.inc'   ; Bewegungsmelder auslesen
                 INCLUDE 'Passwort.inc'          ; Routine zur Passworteingabe
-                INCLUDE 'RFID_Test.inc'
+                INCLUDE 'RFID_Test2.inc'
                 INCLUDE 'SPI.inc'                
 
                 INCLUDE 'Init.inc'              ; Hier startet der µC / Initialisierungen
