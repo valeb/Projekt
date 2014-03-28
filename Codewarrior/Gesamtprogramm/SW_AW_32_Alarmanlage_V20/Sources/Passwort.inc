@@ -12,6 +12,7 @@
 ;*      Variabeln:                                                                              *
 ;*      PW_Flag     ds    1T                                                                    *
 ;*      PW_Counter  ds    1T                                                                    *
+;*      Compare     ds    1T                                                                    *    
 ;*                                                                                              *
 ;*      Eingang:                                                                                *
 ;*      jsr     Check_PW                                                                        *
@@ -24,19 +25,6 @@
 ;*                                                                                              *      
 ;************************************************************************************************
 
-; OK --> PD1
-; ZUR --> PD0
-; VOR --> PD2
-; 1 --> PD3 
-; 2 --> PD4 
-; 3 --> PF6 
-; 4 --> PF5 
-; 5 --> PF7 
-; 6 --> PF4
-; 7 --> PF3
-; 8 --> PF2
-; 9 --> PF1
-; 0 --> PF0
 
 Check_PW
 
@@ -44,18 +32,71 @@ Check_PW
       cmpa    TOK_Flag
       bne     PW_Weiter
       
-      bset    0,TOK_Flag
+      bset    1,TOK_Flag
+      
+      brclr   7,PW_Flag,StartPW
+      
+      brset   6,PW_Flag,Fehler
+      brclr   6,PW_Flag,Richtig
+      
+StartPW      
       bset    7,PW_Flag
+      
+      ;compare Eingabelänge, richtigkeit
 
 PW_Weiter
       
       brclr   7,PW_Flag,PW_Ende
       
+      ldhx    #Passwort
+      txa
+      add     TValue
+      tax
+      lda     0,X
+      
+      cmpa    TValue
+      beq     Richtig1
             
+      bset    6, PW_Flag      ; Fehler
+       
+Richtig1
+
+      lda     PW_Counter
+      inca
+      sta     PW_Counter
+      cmpa    #4
+      blo     Richtig2
+      
+      bset    6, PW_Flag      ; Fehler
+      
+Richtig2      
+      
+       
       
 PW_Ende
 
       rts
+      
+Fehler
+
+      lda   #0T
+      sta   PW_Counter
+      clr   PW_Flag
+      ; Print Falsche Eingabe
+      
+      rts
+      
+Richtig
+
+      lda   #0T
+      sta   PW_Counter
+      clr   PW_Flag
+      bset  0,PW_Flag
+      ; Print Richtige Eingabea
+      
+      
+      rts
+                 
         
 Passwort
 

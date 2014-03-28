@@ -42,6 +42,7 @@ TZUR_Flag         ds      1T
 
 Blink_Counter     ds      1T
 PW_Counter        ds      1T
+
 TValue            ds      1T
 
 Alarm_Timer       ds      2T
