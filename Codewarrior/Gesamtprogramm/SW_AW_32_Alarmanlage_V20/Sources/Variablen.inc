@@ -54,7 +54,7 @@ Pointer_LOW       ds      2T
 Pointer_HIGH      ds      2T                                                              
                 
 Pointer_Schritte  ds      2T                                                             
-Zurueck           ds      2T                                                            
+;Zurueck           ds      2T                                                            
 Schritte_Counter  ds      2T                            
 
 LCD_Pointer       ds      2T              ; Pointer auf die aktuelle LCD-Routine          

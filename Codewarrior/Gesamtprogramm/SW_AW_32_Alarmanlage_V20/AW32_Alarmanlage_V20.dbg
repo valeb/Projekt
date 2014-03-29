@@ -264,7 +264,7 @@ Pointer_LOW       ds      2T
 Pointer_HIGH      ds      2T                                                              
                 
 Pointer_Schritte  ds      2T                                                             
-Zurueck           ds      2T                                                            
+;Zurueck           ds      2T                                                            
 Schritte_Counter  ds      2T                            
 
 LCD_Pointer       ds      2T              ; Pointer auf die aktuelle LCD-Routine          
@@ -715,9 +715,9 @@ T_C4_L          EQU     $B1
 ;*                                                                                              *
 ;*      In Hauptloop kopieren:                                                                  *
 ;*      jsr     Menue                                                                           *
-;*
-;*      Variablen
-;*      Alarm_Timer      ds     2T
+;*                                                                                              *
+;*      Variablen                                                                               *
+;*      Alarm_Timer      ds     2T                                                              *
 ;*                                                                                              *
 ;*      In Init kopieren:                                                                       *
 ;*      jsr   Init_Menue                                                                        *
@@ -786,9 +786,7 @@ ZU_StartText2
           ldhx    #0T
           sthx    Schritte_Counter
           
-          rts
-                   
-          
+          rts                         
 
 StartText2
  
@@ -842,7 +840,7 @@ Inaktiv
 
 Aktiv      
           
-          ;jsr     Passwort
+          jsr     Check_PW
           ;jsr     Check-RFID
           jsr     Bewegungsmelder
                    
@@ -853,7 +851,7 @@ Aktiv
           sthx    SourcePointer
           ldhx    #LCD_Oben
           sthx    DestPointer
-          lda     #32T
+          lda     #16T
           sta     TextLenght          
           jsr     CopyText          
           
@@ -865,8 +863,10 @@ Aktiv
           
           
           ;lda     RFID-Flag
-          
-          ;lda     PW_Flag
+
+          lda     PW_Flag
+          cmpa    #%00000001
+          beq     ZU_Inaktiv
            
           lda     Bewegung_Flag
           cmpa    #%10011111        
@@ -878,20 +878,7 @@ Aktiv
 
 ;Die Adresse des nächsten Schrittes wird in den Pointer geladen
          
-ZU_Alarm
-          ldhx    #Alarm
-          sthx    Pointer_Schritte
-          
-          ldhx    #0T
-          sthx    Schritte_Counter
-          
-          bset    CHECKED, T0_Flag       ;Verhindert dass ein Tastendruck öfters verwendet wird
-          
-          lda     #0T
-          sta     Zurueck
-          
-          rts
-          
+
 ZU_Aktiv
           clr     Alarm_Flag
           bclr    0,PORTB
@@ -905,11 +892,12 @@ ZU_Aktiv
           
           bset    CHECKED, T0_Flag
           
-          lda     #0T
-          sta     Zurueck
+          ;lda     #0T
+          ;sta     Zurueck
           
           rts
-                    
+
+                              
 ZU_Inaktiv
           clr     Alarm_Flag
           bclr    0,PORTB
@@ -922,10 +910,23 @@ ZU_Inaktiv
           sthx    Schritte_Counter
           
           bset    CHECKED, T0_Flag
-          
+          bset    CHECKED, PW_Flag
                     
-          rts                 
+          rts 
+                          
+ZU_Alarm
+          ldhx    #Alarm
+          sthx    Pointer_Schritte
           
+          ldhx    #0T
+          sthx    Schritte_Counter
+          
+          bset    CHECKED, T0_Flag       ;Verhindert dass ein Tastendruck öfters verwendet wird
+          
+          ;lda     #0T
+          ;sta     Zurueck
+          
+          rts          
 ;********| Ausgelöst |***************************************************************************
 
 Alarm    
@@ -944,7 +945,7 @@ Alarm
 No_Reset          
           
           jsr     Alarmton
-          ;jsr     Passwort
+          jsr     Check_PW
           ;jsr     Check-RFID  
    
           ;Ausgabe Text 
@@ -952,7 +953,7 @@ No_Reset
           sthx    SourcePointer
           ldhx    #LCD_Oben
           sthx    DestPointer
-          lda     #32T
+          lda     #16T
           sta     TextLenght          
           jsr     CopyText        
           
@@ -977,6 +978,10 @@ No_Reset
                    
 ;*******|Texte für Schritte |*******************************************************************    
 
+Text_Alarm
+                  ;----------------
+          dc.b    '    Alarm!!     '
+          
 Text_Start1
                   ;----------------
           dc.b    'Valentin Bernard'
@@ -992,15 +997,11 @@ Text_Inaktiv
           dc.b    ' Alarm Inaktiv  '
           dc.b    '                '
           
+
+          
 Text_Aktiv
                   ;----------------
           dc.b    ' Alarm Aktiv    '
-          dc.b    '                '
-          
-Text_Alarm
-                  ;----------------
-          dc.b    '    Alarm!!     '
-          dc.b    '                '
                 INCLUDE 'LCD_Disp_8bit.inc'     ; Routine für das LCD Display
 ;************************************************************************************************
 ;*      LCD-ROUTINE                                                                              *
@@ -1992,86 +1993,207 @@ Ende_Bewegung
 
 Check_PW
 
-      lda     #%00000001  
-      cmpa    TOK_Flag
-      bne     PW_Weiter
+          lda     #%00000001
+          cmpa    TOK_Flag
+          bne     PW_Weiter
       
-      bset    1,TOK_Flag
-      
-      brclr   7,PW_Flag,StartPW
-      
-      brset   6,PW_Flag,Fehler
-      brclr   6,PW_Flag,Richtig
-      
+          bset    1,TOK_Flag
+
+          brclr   7,PW_Flag,StartPW
+         
+          lda     PW_Counter
+          cmpa    #5T
+          bne     Fehler 
+          
+          lda     #0T
+          sta     PW_Counter    
+
+          brset   6,PW_Flag,Fehler
+          brclr   6,PW_Flag,Richtig
+
 StartPW      
-      bset    7,PW_Flag
-      
-      ;compare Eingabelänge, richtigkeit
-
-PW_Weiter
-      
-      brclr   7,PW_Flag,PW_Ende
-      
-      ldhx    #Passwort
-      txa
-      add     TValue
-      tax
-      lda     0,X
-      
-      cmpa    TValue
-      beq     Richtig1
-            
-      bset    6, PW_Flag      ; Fehler
-       
-Richtig1
-
-      lda     PW_Counter
-      inca
-      sta     PW_Counter
-      cmpa    #4
-      blo     Richtig2
-      
-      bset    6, PW_Flag      ; Fehler
-      
-Richtig2      
-      
-       
-      
-PW_Ende
-
-      rts
-      
+          bset    7,PW_Flag
+          lda     #0T
+          sta     PW_Counter
+          ; Text Passwort Eingeben 
+          ldhx    #Text_PW
+          sthx    SourcePointer
+          ldhx    #LCD_Unten
+          sthx    DestPointer
+          lda     #16T
+          sta     TextLenght          
+          jsr     CopyText
+          
+          rts 
+          
 Fehler
 
-      lda   #0T
-      sta   PW_Counter
-      clr   PW_Flag
-      ; Print Falsche Eingabe
+          lda     #0T
+          sta     PW_Counter
+          clr     PW_Flag
+          bset    1,PW_Flag
+          
+          ; Print Falsche Eingabe
+          ldhx    #Text_Fehler
+          sthx    SourcePointer
+          ldhx    #LCD_Unten
+          sthx    DestPointer
+          lda     #16T
+          sta     TextLenght          
+          jsr     CopyText 
+          
       
-      rts
+          rts
       
 Richtig
 
-      lda   #0T
-      sta   PW_Counter
-      clr   PW_Flag
-      bset  0,PW_Flag
-      ; Print Richtige Eingabea
+          lda   #0T
+          sta   PW_Counter
+          clr   PW_Flag
+          bset  0,PW_Flag
+          
+          ; Print Richtige Eingabe
+          ldhx    #Text_Richtig
+          sthx    SourcePointer
+          ldhx    #LCD_Unten
+          sthx    DestPointer
+          lda     #16T
+          sta     TextLenght          
+          jsr     CopyText 
       
+          rts          
+
+PW_Weiter
+
+          brclr   7,PW_Flag,PW_Nichts
+          
+          lda     #%00000001
+          cmpa    T1_Flag
+          beq     PW_Druck
+          cmpa    T2_Flag
+          beq     PW_Druck
+          cmpa    T3_Flag
+          beq     PW_Druck
+          cmpa    T4_Flag
+          beq     PW_Druck
+          cmpa    T5_Flag
+          beq     PW_Druck
+          cmpa    T6_Flag
+          beq     PW_Druck
+          cmpa    T7_Flag
+          beq     PW_Druck
+          cmpa    T8_Flag
+          beq     PW_Druck
+          cmpa    T9_Flag
+          beq     PW_Druck
+          cmpa    T0_Flag
+          beq     PW_Druck
+
+          bra     PW_rts
+          
+PW_Druck          
       
-      rts
-                 
+          bset    1,T1_Flag
+          bset    1,T2_Flag
+          bset    1,T3_Flag
+          bset    1,T4_Flag
+          bset    1,T5_Flag
+          bset    1,T6_Flag
+          bset    1,T7_Flag
+          bset    1,T8_Flag
+          bset    1,T9_Flag
+          bset    1,T0_Flag
+      
+          ; * Ausgeben
+          ldhx    #Text_Stern
+          sthx    SourcePointer
+          ldhx    #LCD_Unten+4
+          txa
+          add     PW_Counter
+          tax
+          sthx    DestPointer
+          lda     #1T
+          sta     TextLenght          
+          jsr     CopyText
+          
+          ldhx    #Passwort
+          txa
+          add     PW_Counter
+          tax
+          lda     0,X 
+
+          cmpa    TValue
+          beq     Richtig1
+            
+          bset    6, PW_Flag      ; Fehler
+       
+Richtig1
+
+          lda     PW_Counter
+          inca
+          sta     PW_Counter
+          cmpa    #5
+          bls     PW_rts
+      
+          bset    6, PW_Flag      ; Fehler
+          
+          rts       
+      
+PW_Nichts
+
+          brclr   1,PW_Flag,PW_Del
+          
+          lda     PW_Counter
+          inca
+          sta     PW_Counter
+          cmpa    #50T
+          bne     PW_rts         
+          
+PW_Del
+
+          ; untere Zeile löschen 
+          ldhx    #Text_Nichts
+          sthx    SourcePointer
+          ldhx    #LCD_Unten
+          sthx    DestPointer
+          lda     #16T
+          sta     TextLenght          
+          jsr     CopyText         
+PW_rts      
+      
+          rts          
+          
+                          
         
 Passwort
 
-  dc.w    1
-  dc.w    2
-  dc.w    3
-  dc.w    4
-  dc.w    5
+      dc.b    1
+      dc.b    2
+      dc.b    3
+      dc.b    4
+      dc.b    5
   
 EndePW  
   
+Text_PW 
+              ;----------------
+      dc.b    'PW:             '
+      
+Text_Stern
+      
+      dc.b    '*'
+      
+Text_Nichts
+              ;----------------
+      dc.b    '                '      
+      
+Text_Fehler
+              ;----------------
+      dc.b    'FALSCHE EINGABE '
+
+Text_Richtig
+              ;----------------
+      dc.b    'RICHTIGE EINGABE'
 
             
                   

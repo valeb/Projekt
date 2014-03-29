@@ -16,9 +16,9 @@
 ;*                                                                                              *
 ;*      In Hauptloop kopieren:                                                                  *
 ;*      jsr     Menue                                                                           *
-;*
-;*      Variablen
-;*      Alarm_Timer      ds     2T
+;*                                                                                              *
+;*      Variablen                                                                               *
+;*      Alarm_Timer      ds     2T                                                              *
 ;*                                                                                              *
 ;*      In Init kopieren:                                                                       *
 ;*      jsr   Init_Menue                                                                        *
@@ -87,9 +87,7 @@ ZU_StartText2
           ldhx    #0T
           sthx    Schritte_Counter
           
-          rts
-                   
-          
+          rts                         
 
 StartText2
  
@@ -143,7 +141,7 @@ Inaktiv
 
 Aktiv      
           
-          ;jsr     Passwort
+          jsr     Check_PW
           ;jsr     Check-RFID
           jsr     Bewegungsmelder
                    
@@ -154,7 +152,7 @@ Aktiv
           sthx    SourcePointer
           ldhx    #LCD_Oben
           sthx    DestPointer
-          lda     #32T
+          lda     #16T
           sta     TextLenght          
           jsr     CopyText          
           
@@ -166,8 +164,10 @@ Aktiv
           
           
           ;lda     RFID-Flag
-          
-          ;lda     PW_Flag
+
+          lda     PW_Flag
+          cmpa    #%00000001
+          beq     ZU_Inaktiv
            
           lda     Bewegung_Flag
           cmpa    #%10011111        
@@ -179,20 +179,7 @@ Aktiv
 
 ;Die Adresse des nächsten Schrittes wird in den Pointer geladen
          
-ZU_Alarm
-          ldhx    #Alarm
-          sthx    Pointer_Schritte
-          
-          ldhx    #0T
-          sthx    Schritte_Counter
-          
-          bset    CHECKED, T0_Flag       ;Verhindert dass ein Tastendruck öfters verwendet wird
-          
-          lda     #0T
-          sta     Zurueck
-          
-          rts
-          
+
 ZU_Aktiv
           clr     Alarm_Flag
           bclr    0,PORTB
@@ -206,11 +193,12 @@ ZU_Aktiv
           
           bset    CHECKED, T0_Flag
           
-          lda     #0T
-          sta     Zurueck
+          ;lda     #0T
+          ;sta     Zurueck
           
           rts
-                    
+
+                              
 ZU_Inaktiv
           clr     Alarm_Flag
           bclr    0,PORTB
@@ -223,10 +211,23 @@ ZU_Inaktiv
           sthx    Schritte_Counter
           
           bset    CHECKED, T0_Flag
-          
+          bset    CHECKED, PW_Flag
                     
-          rts                 
+          rts 
+                          
+ZU_Alarm
+          ldhx    #Alarm
+          sthx    Pointer_Schritte
           
+          ldhx    #0T
+          sthx    Schritte_Counter
+          
+          bset    CHECKED, T0_Flag       ;Verhindert dass ein Tastendruck öfters verwendet wird
+          
+          ;lda     #0T
+          ;sta     Zurueck
+          
+          rts          
 ;********| Ausgelöst |***************************************************************************
 
 Alarm    
@@ -245,7 +246,7 @@ Alarm
 No_Reset          
           
           jsr     Alarmton
-          ;jsr     Passwort
+          jsr     Check_PW
           ;jsr     Check-RFID  
    
           ;Ausgabe Text 
@@ -253,7 +254,7 @@ No_Reset
           sthx    SourcePointer
           ldhx    #LCD_Oben
           sthx    DestPointer
-          lda     #32T
+          lda     #16T
           sta     TextLenght          
           jsr     CopyText        
           
@@ -278,6 +279,10 @@ No_Reset
                    
 ;*******|Texte für Schritte |*******************************************************************    
 
+Text_Alarm
+                  ;----------------
+          dc.b    '    Alarm!!     '
+          
 Text_Start1
                   ;----------------
           dc.b    'Valentin Bernard'
@@ -293,12 +298,8 @@ Text_Inaktiv
           dc.b    ' Alarm Inaktiv  '
           dc.b    '                '
           
+
+          
 Text_Aktiv
                   ;----------------
           dc.b    ' Alarm Aktiv    '
-          dc.b    '                '
-          
-Text_Alarm
-                  ;----------------
-          dc.b    '    Alarm!!     '
-          dc.b    '                '
