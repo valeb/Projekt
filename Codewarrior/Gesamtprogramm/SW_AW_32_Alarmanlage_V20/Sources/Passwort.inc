@@ -26,6 +26,9 @@
 ;************************************************************************************************
 
 
+PW_LAENGE     EQU     5T
+
+
 Check_PW
 
           lda     #%00000001
@@ -37,7 +40,7 @@ Check_PW
           brclr   7,PW_Flag,StartPW
          
           lda     PW_Counter
-          cmpa    #5T
+          cmpa    #PW_LAENGE
           bne     Fehler 
           
           lda     #0T
@@ -86,15 +89,6 @@ Richtig
           sta   PW_Counter
           clr   PW_Flag
           bset  0,PW_Flag
-          
-          ; Print Richtige Eingabe
-          ldhx    #Text_Richtig
-          sthx    SourcePointer
-          ldhx    #LCD_Unten
-          sthx    DestPointer
-          lda     #16T
-          sta     TextLenght          
-          jsr     CopyText 
       
           rts          
 
@@ -167,7 +161,7 @@ Richtig1
           lda     PW_Counter
           inca
           sta     PW_Counter
-          cmpa    #5
+          cmpa    #PW_LAENGE
           bls     PW_rts
       
           bset    6, PW_Flag      ; Fehler
@@ -197,8 +191,6 @@ PW_Del
 PW_rts      
       
           rts          
-          
-                          
         
 Passwort
 
@@ -225,10 +217,5 @@ Text_Nichts
 Text_Fehler
               ;----------------
       dc.b    'FALSCHE EINGABE '
-
-Text_Richtig
-              ;----------------
-      dc.b    'RICHTIGE EINGABE'
-
             
                   

@@ -33,7 +33,6 @@ TASTER_PORT   EQU     PORTF
 ZEIT_START    EQU     200T
 
 
-
 ;************************************************************************************************
 ;*                           Initialisierung des Menüs                                          *
 ;************************************************************************************************
@@ -130,7 +129,7 @@ Inaktiv
           jsr     CopyText
           
           ;Aktieviertung 
-          lda     T0_Flag
+          lda     TOK_Flag
           cmpa    #%00000001        
           beq     ZU_Aktiv
                     
@@ -157,11 +156,6 @@ Aktiv
           jsr     CopyText          
           
           ;Austrittsbedingungen 
-          
-          lda     T0_Flag
-          cmpa    #%00000001        
-          beq     ZU_Inaktiv
-          
           
           ;lda     RFID-Flag
 
@@ -191,7 +185,7 @@ ZU_Aktiv
           ldhx    #0T
           sthx    Schritte_Counter
           
-          bset    CHECKED, T0_Flag
+          bset    CHECKED, TOK_Flag
           
           ;lda     #0T
           ;sta     Zurueck
@@ -210,7 +204,7 @@ ZU_Inaktiv
           ldhx    #0T
           sthx    Schritte_Counter
           
-          bset    CHECKED, T0_Flag
+          bset    CHECKED, TOK_Flag
           bset    CHECKED, PW_Flag
                     
           rts 
@@ -222,7 +216,7 @@ ZU_Alarm
           ldhx    #0T
           sthx    Schritte_Counter
           
-          bset    CHECKED, T0_Flag       ;Verhindert dass ein Tastendruck öfters verwendet wird
+          bset    CHECKED, TOK_Flag       ;Verhindert dass ein Tastendruck öfters verwendet wird
           
           ;lda     #0T
           ;sta     Zurueck
@@ -264,8 +258,8 @@ No_Reset
           ;lda     RFID_Flag
           ;lda     PW_Flag
           
-          lda     T0_Flag
-          cmpa    #%00000001        
+          lda     PW_Flag
+          cmpa    #%00000001
           beq     ZU_Inaktiv
           
           ldhx    Alarm_Timer

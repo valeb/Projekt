@@ -732,7 +732,6 @@ TASTER_PORT   EQU     PORTF
 ZEIT_START    EQU     200T
 
 
-
 ;************************************************************************************************
 ;*                           Initialisierung des Menüs                                          *
 ;************************************************************************************************
@@ -829,7 +828,7 @@ Inaktiv
           jsr     CopyText
           
           ;Aktieviertung 
-          lda     T0_Flag
+          lda     TOK_Flag
           cmpa    #%00000001        
           beq     ZU_Aktiv
                     
@@ -856,11 +855,6 @@ Aktiv
           jsr     CopyText          
           
           ;Austrittsbedingungen 
-          
-          lda     T0_Flag
-          cmpa    #%00000001        
-          beq     ZU_Inaktiv
-          
           
           ;lda     RFID-Flag
 
@@ -890,7 +884,7 @@ ZU_Aktiv
           ldhx    #0T
           sthx    Schritte_Counter
           
-          bset    CHECKED, T0_Flag
+          bset    CHECKED, TOK_Flag
           
           ;lda     #0T
           ;sta     Zurueck
@@ -909,7 +903,7 @@ ZU_Inaktiv
           ldhx    #0T
           sthx    Schritte_Counter
           
-          bset    CHECKED, T0_Flag
+          bset    CHECKED, TOK_Flag
           bset    CHECKED, PW_Flag
                     
           rts 
@@ -921,7 +915,7 @@ ZU_Alarm
           ldhx    #0T
           sthx    Schritte_Counter
           
-          bset    CHECKED, T0_Flag       ;Verhindert dass ein Tastendruck öfters verwendet wird
+          bset    CHECKED, TOK_Flag       ;Verhindert dass ein Tastendruck öfters verwendet wird
           
           ;lda     #0T
           ;sta     Zurueck
@@ -963,8 +957,8 @@ No_Reset
           ;lda     RFID_Flag
           ;lda     PW_Flag
           
-          lda     T0_Flag
-          cmpa    #%00000001        
+          lda     PW_Flag
+          cmpa    #%00000001
           beq     ZU_Inaktiv
           
           ldhx    Alarm_Timer
@@ -1991,6 +1985,9 @@ Ende_Bewegung
 ;************************************************************************************************
 
 
+PW_LAENGE     EQU     5T
+
+
 Check_PW
 
           lda     #%00000001
@@ -2002,7 +1999,7 @@ Check_PW
           brclr   7,PW_Flag,StartPW
          
           lda     PW_Counter
-          cmpa    #5T
+          cmpa    #PW_LAENGE
           bne     Fehler 
           
           lda     #0T
@@ -2051,15 +2048,6 @@ Richtig
           sta   PW_Counter
           clr   PW_Flag
           bset  0,PW_Flag
-          
-          ; Print Richtige Eingabe
-          ldhx    #Text_Richtig
-          sthx    SourcePointer
-          ldhx    #LCD_Unten
-          sthx    DestPointer
-          lda     #16T
-          sta     TextLenght          
-          jsr     CopyText 
       
           rts          
 
@@ -2132,7 +2120,7 @@ Richtig1
           lda     PW_Counter
           inca
           sta     PW_Counter
-          cmpa    #5
+          cmpa    #PW_LAENGE
           bls     PW_rts
       
           bset    6, PW_Flag      ; Fehler
@@ -2190,11 +2178,6 @@ Text_Nichts
 Text_Fehler
               ;----------------
       dc.b    'FALSCHE EINGABE '
-
-Text_Richtig
-              ;----------------
-      dc.b    'RICHTIGE EINGABE'
-
             
                   
                 
