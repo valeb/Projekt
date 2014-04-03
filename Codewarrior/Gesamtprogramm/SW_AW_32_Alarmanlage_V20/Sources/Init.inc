@@ -34,6 +34,7 @@ Main_Init
                 
                 jsr     Init_Alarmton
                 jsr     Init_Alarmtimer
+                jsr     Change_PW
                 
                 jsr     Init_LCD                ; [LCD_Disp_8Bit.inc] Initialisiert das LCD
                 

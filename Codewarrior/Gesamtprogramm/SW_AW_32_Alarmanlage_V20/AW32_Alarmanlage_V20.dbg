@@ -290,7 +290,19 @@ T8_Counter        ds      1T
 T9_Counter        ds      1T                                                                 
 TOK_Counter       ds      1T                                                                 
 TVOR_Counter      ds      1T                                                              
-TZUR_Counter      ds      1T                                                                           
+TZUR_Counter      ds      1T  
+
+
+PW_1              ds      1T
+PW_2              ds      1T 
+PW_3              ds      1T 
+PW_4              ds      1T 
+PW_5              ds      1T 
+PW_6              ds      1T 
+PW_7              ds      1T
+PW_8              ds      1T 
+PW_9              ds      1T 
+PW_10             ds      1T                                                                          
 
 
 
@@ -737,7 +749,7 @@ ZEIT_START    EQU     200T
 ;************************************************************************************************
 
 Init_Menue
-          ldhx  #StartText		            ;Speichere Adresse des ersten Schrittes in Pointer
+          ldhx  #Inaktiv		            ;Speichere Adresse des ersten Schrittes in Pointer
           sthx  Pointer_Schritte
           rts
 
@@ -983,8 +995,8 @@ Text_Start1
           
 Text_Start2
                   ;----------------
-          dc.b    ' Maturaproljekt '
-          dc.b    '  Alarmanlage   '
+          dc.b    ' Maturaprojekt  '
+          dc.b    ' Alarmanlage    '
 
 Text_Inaktiv
                   ;----------------
@@ -1956,7 +1968,7 @@ Flag_1
 Ende_Bewegung
         
         rts   
-                INCLUDE 'Passwort.inc'          ; Routine zur Passworteingabe
+                INCLUDE 'Passwort2.inc'          ; Routine zur Passworteingabe
 ;************************************************************************************************
 ;*      AW32-Passwort  Version 1.0                                                              *
 ;*                                                                                              *
@@ -1998,8 +2010,13 @@ Check_PW
 
           brclr   7,PW_Flag,StartPW
          
-          lda     PW_Counter
-          cmpa    #PW_LAENGE
+          ldhx    #PW_1
+          txa
+          add     PW_Counter
+          add     #1T
+          tax
+          lda     0,X
+          cmpa    #$FF
           bne     Fehler 
           
           lda     #0T
@@ -2104,12 +2121,12 @@ PW_Druck
           sta     TextLenght          
           jsr     CopyText
           
-          ldhx    #Passwort
+          ldhx    #PW_1
           txa
           add     PW_Counter
           tax
-          lda     0,X 
-
+          lda     0,X
+                
           cmpa    TValue
           beq     Richtig1
             
@@ -2120,10 +2137,6 @@ Richtig1
           lda     PW_Counter
           inca
           sta     PW_Counter
-          cmpa    #PW_LAENGE
-          bls     PW_rts
-      
-          bset    6, PW_Flag      ; Fehler
           
           rts       
       
@@ -2150,8 +2163,6 @@ PW_Del
 PW_rts      
       
           rts          
-          
-                          
         
 Passwort
 
@@ -2161,7 +2172,35 @@ Passwort
       dc.b    4
       dc.b    5
   
-EndePW  
+EndePW
+
+
+Change_PW
+
+          lda     #1T
+          sta     PW_1
+          lda     #2T
+          sta     PW_2
+          lda     #3T
+          sta     PW_3
+          lda     #4T
+          sta     PW_4
+          lda     #5T
+          sta     PW_5
+          lda     #$FF
+          sta     PW_6
+          lda     #$FF
+          sta     PW_7
+          lda     #$FF
+          sta     PW_8
+          lda     #$FF
+          sta     PW_9
+          lda     #$FF
+          sta     PW_10
+          
+          rts                     
+
+  
   
 Text_PW 
               ;----------------
@@ -2219,6 +2258,7 @@ Main_Init
                 
                 jsr     Init_Alarmton
                 jsr     Init_Alarmtimer
+                jsr     Change_PW
                 
                 jsr     Init_LCD                ; [LCD_Disp_8Bit.inc] Initialisiert das LCD
                 

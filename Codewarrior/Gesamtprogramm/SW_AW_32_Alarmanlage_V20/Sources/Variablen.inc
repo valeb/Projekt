@@ -80,4 +80,16 @@ T8_Counter        ds      1T
 T9_Counter        ds      1T                                                                 
 TOK_Counter       ds      1T                                                                 
 TVOR_Counter      ds      1T                                                              
-TZUR_Counter      ds      1T                                                                           
+TZUR_Counter      ds      1T  
+
+
+PW_1              ds      1T
+PW_2              ds      1T 
+PW_3              ds      1T 
+PW_4              ds      1T 
+PW_5              ds      1T 
+PW_6              ds      1T 
+PW_7              ds      1T
+PW_8              ds      1T 
+PW_9              ds      1T 
+PW_10             ds      1T                                                                          

@@ -38,7 +38,7 @@ ZEIT_START    EQU     200T
 ;************************************************************************************************
 
 Init_Menue
-          ldhx  #StartText		            ;Speichere Adresse des ersten Schrittes in Pointer
+          ldhx  #Inaktiv		            ;Speichere Adresse des ersten Schrittes in Pointer
           sthx  Pointer_Schritte
           rts
 
@@ -284,8 +284,8 @@ Text_Start1
           
 Text_Start2
                   ;----------------
-          dc.b    ' Maturaproljekt '
-          dc.b    '  Alarmanlage   '
+          dc.b    ' Maturaprojekt  '
+          dc.b    ' Alarmanlage    '
 
 Text_Inaktiv
                   ;----------------
