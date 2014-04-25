@@ -116,8 +116,6 @@ Inaktiv
           
           ;jsr     Check-RFID
           jsr     Blink_Gruen
-          
-          jsr     Change_PW
               
           ;Ausgabe: "Alarm Inaktiv"
           ldhx    #Text_Inaktiv
@@ -235,10 +233,12 @@ ZU_Change
 ;********| Passwort ändern |*********************************************************************
 
 Change
-  
-          
           jsr     Change_PW
           jsr     Blink_Gruen
+          
+          lda     PW_Flag
+          cmpa    #%00100000
+          beq     ZU_Inaktiv
           
           ;Ausgabe: "Neues Passwort"
           ldhx    #Text_Change
@@ -248,10 +248,6 @@ Change
           lda     #19T
           sta     TextLenght
           jsr     CopyText
-            
-          lda     TZUR_Flag
-          cmpa    #%00000001
-          beq     ZU_Inaktiv
            
           rts                
                    

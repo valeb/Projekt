@@ -826,8 +826,6 @@ Inaktiv
           
           ;jsr     Check-RFID
           jsr     Blink_Gruen
-          
-          jsr     Change_PW
               
           ;Ausgabe: "Alarm Inaktiv"
           ldhx    #Text_Inaktiv
@@ -945,10 +943,12 @@ ZU_Change
 ;********| Passwort ändern |*********************************************************************
 
 Change
-  
-          
           jsr     Change_PW
           jsr     Blink_Gruen
+          
+          lda     PW_Flag
+          cmpa    #%00100000
+          beq     ZU_Inaktiv
           
           ;Ausgabe: "Neues Passwort"
           ldhx    #Text_Change
@@ -958,10 +958,6 @@ Change
           lda     #19T
           sta     TextLenght
           jsr     CopyText
-            
-          lda     TZUR_Flag
-          cmpa    #%00000001
-          beq     ZU_Inaktiv
            
           rts                
                    
@@ -2217,11 +2213,9 @@ PW_rts
 
 Change_PW
 
-          ; Ende der Eingabe?
-          lda     #%00000001
+          ; End-Tasten check
+          lda     #%00000001          
           cmpa    TOK_Flag
-          bne     Change_Weiter
-          cmpa    TZUR_Flag
           bne     Change_Weiter
           
           ; Bei 0 Zeichen: Kein Ende
@@ -2230,7 +2224,6 @@ Change_PW
           beq     Change_Weiter
           
           bset    CHECKED,TOK_Flag
-          bset    0,TZUR_Flag
           
 FF_Loop
           ; Restliche Variablen mit $FF auffüllen
@@ -2250,14 +2243,12 @@ FF_Loop
           bra     FF_Loop         
           
 Ende_FF          
-          lda     #0T
-          sta     PW_Counter  
-          rts            
-          
-          
-          
+          lda     #%00100000
+          sta     PW_Flag 
+          rts               
+                  
 Change_Weiter
-         
+          
           ; Tastendruck erkennen 
           lda     #%00000001
           cmpa    T1_Flag

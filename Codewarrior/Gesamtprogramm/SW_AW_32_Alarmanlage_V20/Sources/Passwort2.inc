@@ -215,11 +215,9 @@ PW_rts
 
 Change_PW
 
-          ; Ende der Eingabe?
-          lda     #%00000001
+          ; End-Tasten check
+          lda     #%00000001          
           cmpa    TOK_Flag
-          bne     Change_Weiter
-          cmpa    TZUR_Flag
           bne     Change_Weiter
           
           ; Bei 0 Zeichen: Kein Ende
@@ -228,7 +226,6 @@ Change_PW
           beq     Change_Weiter
           
           bset    CHECKED,TOK_Flag
-          bset    0,TZUR_Flag
           
 FF_Loop
           ; Restliche Variablen mit $FF auffüllen
@@ -248,14 +245,12 @@ FF_Loop
           bra     FF_Loop         
           
 Ende_FF          
-          lda     #0T
-          sta     PW_Counter  
-          rts            
-          
-          
-          
+          lda     #%00100000
+          sta     PW_Flag 
+          rts               
+                  
 Change_Weiter
-         
+          
           ; Tastendruck erkennen 
           lda     #%00000001
           cmpa    T1_Flag
