@@ -81,7 +81,7 @@ Main_Loop
                 INCLUDE 'Tastenroutine.inc'     ; Routine für die Abfrage der Taster
                 INCLUDE 'Blinklichter.inc'      ; Routine für das Blicklicht
                 INCLUDE 'Bewegungsmelder.inc'   ; Bewegungsmelder auslesen
-                INCLUDE 'Passwort2.inc'          ; Routine zur Passworteingabe
+                INCLUDE 'Passwort2.inc'         ; Routine zur Passworteingabe
                 
 
                 INCLUDE 'Init.inc'              ; Hier startet der µC / Initialisierungen

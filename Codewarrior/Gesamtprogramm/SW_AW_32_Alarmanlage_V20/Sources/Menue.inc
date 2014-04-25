@@ -109,8 +109,6 @@ StartText2
           beq     ZU_Inaktiv
           
           rts
-
-
           
 ;********| Deaktiviert |************************************************************************                                                                        
 
@@ -118,6 +116,8 @@ Inaktiv
           
           ;jsr     Check-RFID
           jsr     Blink_Gruen
+          
+          jsr     Change_PW
               
           ;Ausgabe: "Alarm Inaktiv"
           ldhx    #Text_Inaktiv
@@ -132,9 +132,13 @@ Inaktiv
           lda     TOK_Flag
           cmpa    #%00000001        
           beq     ZU_Aktiv
-                    
-          rts
           
+          ;Passwort ändern
+          lda     TVOR_Flag
+          cmpa    #%00000001
+          beq     ZU_Change
+                    
+          rts             
                                           
 ;********| Aktiviert |***************************************************************************
 
@@ -167,11 +171,22 @@ Aktiv
           cmpa    #%10011111        
           beq     ZU_Alarm
           
-          rts
+          rts        
           
 ;********| Sprünge |*****************************************************************************
 
 ;Die Adresse des nächsten Schrittes wird in den Pointer geladen
+
+ZU_Alarm
+          ldhx    #Alarm
+          sthx    Pointer_Schritte
+          
+          ldhx    #0T
+          sthx    Schritte_Counter
+          
+          bset    CHECKED, TOK_Flag       ;Verhindert dass ein Tastendruck öfters verwendet wird
+          
+          rts 
          
 
 ZU_Aktiv
@@ -191,8 +206,7 @@ ZU_Aktiv
           ;sta     Zurueck
           
           rts
-
-                              
+                                        
 ZU_Inaktiv
           clr     Alarm_Flag
           bclr    0,PORTB
@@ -205,23 +219,42 @@ ZU_Inaktiv
           sthx    Schritte_Counter
           
           bset    CHECKED, TOK_Flag
-          bset    CHECKED, PW_Flag
+          clr     PW_Flag
+          bset    CHECKED, TZUR_Flag
                     
-          rts 
-                          
-ZU_Alarm
-          ldhx    #Alarm
-          sthx    Pointer_Schritte
+          rts
+           
+ZU_Change
+          bset    CHECKED, TVOR_Flag
           
-          ldhx    #0T
-          sthx    Schritte_Counter
+          ldhx    #Change
+          sthx    Pointer_Schritte         
           
-          bset    CHECKED, TOK_Flag       ;Verhindert dass ein Tastendruck öfters verwendet wird
+          rts
+                                    
+;********| Passwort ändern |*********************************************************************
+
+Change
+  
           
-          ;lda     #0T
-          ;sta     Zurueck
+          jsr     Change_PW
+          jsr     Blink_Gruen
           
-          rts          
+          ;Ausgabe: "Neues Passwort"
+          ldhx    #Text_Change
+          sthx    SourcePointer
+          ldhx    #LCD_Oben
+          sthx    DestPointer
+          lda     #19T
+          sta     TextLenght
+          jsr     CopyText
+            
+          lda     TZUR_Flag
+          cmpa    #%00000001
+          beq     ZU_Inaktiv
+           
+          rts                
+                   
 ;********| Ausgelöst |***************************************************************************
 
 Alarm    
@@ -238,6 +271,20 @@ Alarm
           sthx    Alarm_Timer
           
 No_Reset          
+          ;Austrittsbedingungen 
+          ldhx    Alarm_Timer
+          incx
+          sthx    Alarm_Timer
+          cphx    #40000T
+          beq     ZU_Aktiv         
+          
+          ;lda     RFID_Flag
+          ;lda     PW_Flag
+          
+          lda     PW_Flag
+          cmpa    #%00000001
+          beq     ZU_Inaktiv
+          
           
           jsr     Alarmton
           jsr     Check_PW
@@ -250,25 +297,9 @@ No_Reset
           sthx    DestPointer
           lda     #16T
           sta     TextLenght          
-          jsr     CopyText        
-          
-          
-          ;Austrittsbedingungen          
-          
-          ;lda     RFID_Flag
-          ;lda     PW_Flag
-          
-          lda     PW_Flag
-          cmpa    #%00000001
-          beq     ZU_Inaktiv
-          
-          ldhx    Alarm_Timer
-          incx
-          sthx    Alarm_Timer
-          cphx    #40000T
-          beq     ZU_Aktiv
+          jsr     CopyText    
 
-          rts          
+          rts                 
           
                    
 ;*******|Texte für Schritte |*******************************************************************    
@@ -291,9 +322,10 @@ Text_Inaktiv
                   ;----------------
           dc.b    ' Alarm Inaktiv  '
           dc.b    '                '
-          
-
-          
+Text_Change
+                  ;----------------
+          dc.b    ' Neues Passwort '
+          dc.b    'PW:'
 Text_Aktiv
                   ;----------------
           dc.b    ' Alarm Aktiv    '
