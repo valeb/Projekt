@@ -171,7 +171,9 @@ Aktiv
           beq     ZU_Inaktiv
           
           
-          ;lda     RFID-Flag
+          lda     RFID_Flag
+          cmpa    #$FF
+          beq     ZU_Aktiv
           
           ;lda     PW_Flag
            
@@ -185,20 +187,7 @@ Aktiv
 
 ;Die Adresse des nächsten Schrittes wird in den Pointer geladen
          
-ZU_Alarm
-          ldhx    #Alarm
-          sthx    Pointer_Schritte
-          
-          ldhx    #0T
-          sthx    Schritte_Counter
-          
-          bset    CHECKED, T0_Flag       ;Verhindert dass ein Tastendruck öfters verwendet wird
-          
-          lda     #0T
-          sta     Zurueck
-          
-          rts
-          
+
 ZU_Aktiv
           clr     Alarm_Flag
           bclr    0,PORTB
@@ -231,7 +220,23 @@ ZU_Inaktiv
           bset    CHECKED, T0_Flag
           
                     
-          rts                 
+          rts
+          
+ZU_Alarm
+
+          ldhx    #Alarm
+          sthx    Pointer_Schritte
+          
+          ldhx    #0T
+          sthx    Schritte_Counter
+          
+          bset    CHECKED, T0_Flag       ;Verhindert dass ein Tastendruck öfters verwendet wird
+          
+          lda     #0T
+          sta     Zurueck
+          
+          rts
+                          
           
 ;********| Ausgelöst |***************************************************************************
 

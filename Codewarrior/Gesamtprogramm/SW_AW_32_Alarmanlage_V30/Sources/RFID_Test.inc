@@ -1,12 +1,12 @@
 Check_RFID
 
-    lda     #TestBusReg
+    lda     #TModeReg
     sta     Adresse
     lda     #%10101010
     sta     Daten
     jsr     Write_RFID
     
-    lda     #TestBusReg
+    lda     #TModeReg
     sta     Adresse
     jsr     Read_RFID
     lda     Daten

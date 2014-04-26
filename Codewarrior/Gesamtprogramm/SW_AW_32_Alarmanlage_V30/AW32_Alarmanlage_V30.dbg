@@ -256,7 +256,8 @@ PW_Counter        ds      1T
 
 Counter           ds      1T
 Adresse           ds      1T                                                               
-Daten             ds      1T  
+Daten             ds      1T
+Status            ds      1T 
 
 Alarm_Timer       ds      2T
 Ton_Timer         ds      1T                                                           
@@ -984,7 +985,9 @@ Aktiv
           beq     ZU_Inaktiv
           
           
-          ;lda     RFID-Flag
+          lda     RFID_Flag
+          cmpa    #$FF
+          beq     ZU_Aktiv
           
           ;lda     PW_Flag
            
@@ -998,20 +1001,7 @@ Aktiv
 
 ;Die Adresse des nächsten Schrittes wird in den Pointer geladen
          
-ZU_Alarm
-          ldhx    #Alarm
-          sthx    Pointer_Schritte
-          
-          ldhx    #0T
-          sthx    Schritte_Counter
-          
-          bset    CHECKED, T0_Flag       ;Verhindert dass ein Tastendruck öfters verwendet wird
-          
-          lda     #0T
-          sta     Zurueck
-          
-          rts
-          
+
 ZU_Aktiv
           clr     Alarm_Flag
           bclr    0,PORTB
@@ -1044,7 +1034,23 @@ ZU_Inaktiv
           bset    CHECKED, T0_Flag
           
                     
-          rts                 
+          rts
+          
+ZU_Alarm
+
+          ldhx    #Alarm
+          sthx    Pointer_Schritte
+          
+          ldhx    #0T
+          sthx    Schritte_Counter
+          
+          bset    CHECKED, T0_Flag       ;Verhindert dass ein Tastendruck öfters verwendet wird
+          
+          lda     #0T
+          sta     Zurueck
+          
+          rts
+                          
           
 ;********| Ausgelöst |***************************************************************************
 
@@ -2153,16 +2159,16 @@ EndePW
 
             
                   
-                INCLUDE 'RFID_Test2.inc'
+                INCLUDE 'RFID_Test.inc'
 Check_RFID
 
-    lda     #CommandReg
+    lda     #TModeReg
     sta     Adresse
-    lda     #%11101110
+    lda     #%10101010
     sta     Daten
     jsr     Write_RFID
     
-    lda     #CommandReg
+    lda     #TModeReg
     sta     Adresse
     jsr     Read_RFID
     lda     Daten
@@ -2178,7 +2184,6 @@ Check_RFID
 Write_RFID
 
     brclr   5,SPI1S,Ende_RW
-
     
     lda     Adresse
     lsla
@@ -2287,7 +2292,7 @@ Init_SPI
  
  
 
-    mov   #%01110000,SPI1BR     ; Stellt den SPI_Clock ein
+    mov   #%00110000,SPI1BR     ; Stellt den SPI_Clock ein
 ;           ||||||||
 ;           ||||||||_____  )
 ;           |||||||______  > Timer Scaler 2..256 (2)

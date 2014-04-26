@@ -43,7 +43,7 @@ Init_SPI
  
  
 
-    mov   #%01110000,SPI1BR     ; Stellt den SPI_Clock ein
+    mov   #%00110000,SPI1BR     ; Stellt den SPI_Clock ein
 ;           ||||||||
 ;           ||||||||_____  )
 ;           |||||||______  > Timer Scaler 2..256 (2)

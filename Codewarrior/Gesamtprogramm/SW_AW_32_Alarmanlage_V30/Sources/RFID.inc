@@ -30,7 +30,6 @@
 
 Init_RFID
 
-
   ;//Timer: TPrescaler*TreloadVal/6.78MHz = 24ms
   ;Write_MFRC522(TModeReg, 0x8D);		//Tauto=1; f(Timer) = 6.78MHz/TPreScaler
   ;Write_MFRC522(TPrescalerReg, 0x3E);	//TModeReg[3..0] + TPrescalerReg
@@ -40,37 +39,45 @@ Init_RFID
   ;Write_MFRC522(TxAutoReg, 0x40);		//100%ASK
   ;Write_MFRC522(ModeReg, 0x3D);		//CRC initilizate value 0x6363	???
 
-    lda     TModeReg
+    bclr    3,PORTE
+
+    lda     #CommandReg
+    sta     Adresse
+    lda     PCD_RESETPHASE
+    sta     Daten
+    jsr     Write_RFID
+    
+    lda     #TModeReg
     sta     Adresse
     lda     #$8D
     sta     Daten
     jsr     Write_RFID
     
-    lda     TPrescalerReg
+    lda     #TPrescalerReg
     sta     Adresse
     lda     #$3E
     sta     Daten
     jsr     Write_RFID
     
-    lda     TReloadRegL
+    lda     #TReloadRegL
     sta     Adresse
     lda     #30T
     sta     Daten
     jsr     Write_RFID
  
-    lda     TReloadRegH
+    lda     #TReloadRegH
     sta     Adresse
     lda     #$0
     sta     Daten
     jsr     Write_RFID
 
-    lda     TxAutoReg
+    lda     #TxAutoReg
     sta     Adresse
     lda     #$40
     sta     Daten
     jsr     Write_RFID
 
-    lda     ModeReg
+    lda     #ModeReg
     sta     Adresse
     lda     #$3D
     sta     Daten
@@ -85,8 +92,7 @@ Init_RFID
     sta     Daten
     jsr     Write_RFID
 
-    rts
-        
+    rts        
 
 Check_RFID
 
@@ -94,7 +100,7 @@ Check_RFID
     
     lda     Counter
     cmpa    #0T
-    bne     Waiting
+    bne     Transfer
     
     lda     #BitFramingReg
     sta     Adresse
@@ -102,6 +108,8 @@ Check_RFID
     sta     Daten
     jsr     Write_RFID
     
+    ; MFRC5522_ToCard
+     
     lda     #CommIEnReg
     sta     Adresse
     lda     #$77
@@ -133,7 +141,7 @@ Check_RFID
     
     lda     #FIFODataReg
     sta     Adresse
-    lda     #PICC_REQALL
+    lda     #PICC_REQIDL
     sta     Daten
     jsr     Write_RFID
     
@@ -151,30 +159,35 @@ Check_RFID
     sta     Daten
     jsr     Write_RFID
     
-Waiting
+Transfer
 
-    lda     Counter
-    inca
+    lda     #1T
     sta     Counter
-    cmpa    #3T
-    blo     Ende_RFID
-    
-    lda     #0T
-    sta     Counter
-    
+        
     lda     BitFramingReg
     sta     Adresse
     jsr     Read_RFID
     lda     Daten
+    sta     Status
+        
+    cmpa    #30T
+    beq     Ende_Transfer
+    AND     #$01
+    cmpa    #$01
+    bne     Ende_RFID
+
+Ende_Transfer
+
+    lda     #0T
     sta     Counter
-    
+        
     lda     #BitFramingReg
     sta     Adresse
     jsr     Read_RFID
     lda     Daten
     AND     #%01111111
     sta     Daten
-    jsr     Write_RFID
+    jsr     Write_RFID 
     
     lda     ErrorReg
     sta     Adresse
@@ -183,13 +196,13 @@ Waiting
     cmpa    #$1B
     beq     Ende_RFID
     
-    lda     Counter
+    lda     Status
     AND     #$77
-    AND     #$01
+    AND     #$01                        
     cmpa    #1T
     beq     Ende_RFID
     
-    ;an dieser Stelle Sollte ein Tag vorhanen sein?
+    ;an dieser Stelle Sollte ein Tag vorhanen sein
     
     lda     #$FF
     sta     RFID_Flag
@@ -199,23 +212,37 @@ Ende_RFID
    
     rts
     
+    
 ;***** Sende Daten *******************************************************************************    
 
 Write_RFID
 
+    brclr   5,SPI1S,Ende_RW
+    
     lda     Adresse
     lsla
     AND     #%01111110    
     sta     SPI1D
+
+    ;bclr    3,PORTE
     
 S1Delay 
     brclr   7,SPI1S,S1Delay
     
+    lda     SPI1D
+    
     lda     Daten
+
     sta     SPI1D
 
 S2Delay 
-    brclr   7,SPI1S,S2Delay    
+    brclr   7,SPI1S,S2Delay
+    
+    lda     SPI1D
+    
+    ;bset    3,PORTE
+    
+Ende_RW    
         
     rts
   
@@ -223,17 +250,33 @@ S2Delay
     
 Read_RFID
 
+    brclr   5,SPI1S,Ende_RW    
+        
     lda     Adresse
     lsla
-    AND     #%11111110
-    ORA     #%10000000    
+    AND     #%01111110
+    ORA     #%10000000 
+
     sta     SPI1D
+    
+    ;bclr    3,PORTE
     
 S3Delay
     brclr    7,SPI1S,S3Delay
     
     lda     SPI1D
-    sta     Daten 
+    
+    lda     #$00
+
+    sta     SPI1D
+    
+S4Delay
+    brclr    7,SPI1S,S4Delay
+    
+    lda     SPI1D
+
+    sta     Daten    
+    ;bset    3,PORTE     
         
     rts    
-
+  
