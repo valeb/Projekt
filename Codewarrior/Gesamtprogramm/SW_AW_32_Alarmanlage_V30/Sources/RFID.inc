@@ -39,13 +39,13 @@ Init_RFID
   ;Write_MFRC522(TxAutoReg, 0x40);		//100%ASK
   ;Write_MFRC522(ModeReg, 0x3D);		//CRC initilizate value 0x6363	???
 
-    bclr    3,PORTE
-
+    ;Reset Durchführen
     lda     #CommandReg
     sta     Adresse
-    lda     PCD_RESETPHASE
+    lda     #PCD_RESETPHASE
     sta     Daten
     jsr     Write_RFID
+    
     
     lda     #TModeReg
     sta     Adresse
@@ -164,13 +164,13 @@ Transfer
     lda     #1T
     sta     Counter
         
-    lda     BitFramingReg
+    lda     CommIrqReg
     sta     Adresse
     jsr     Read_RFID
     lda     Daten
     sta     Status
         
-    cmpa    #30T
+    cmpa    #$30
     beq     Ende_Transfer
     AND     #$01
     cmpa    #$01
@@ -199,7 +199,7 @@ Ende_Transfer
     lda     Status
     AND     #$77
     AND     #$01                        
-    cmpa    #1T
+    cmpa    #$1
     beq     Ende_RFID
     
     ;an dieser Stelle Sollte ein Tag vorhanen sein
@@ -224,7 +224,7 @@ Write_RFID
     AND     #%01111110    
     sta     SPI1D
 
-    ;bclr    3,PORTE
+    bclr    3,PORTE
     
 S1Delay 
     brclr   7,SPI1S,S1Delay
@@ -240,7 +240,7 @@ S2Delay
     
     lda     SPI1D
     
-    ;bset    3,PORTE
+    bset    3,PORTE
     
 Ende_RW    
         
@@ -259,7 +259,7 @@ Read_RFID
 
     sta     SPI1D
     
-    ;bclr    3,PORTE
+    bclr    3,PORTE
     
 S3Delay
     brclr    7,SPI1S,S3Delay
@@ -276,7 +276,7 @@ S4Delay
     lda     SPI1D
 
     sta     Daten    
-    ;bset    3,PORTE     
+    bset    3,PORTE     
         
     rts    
   

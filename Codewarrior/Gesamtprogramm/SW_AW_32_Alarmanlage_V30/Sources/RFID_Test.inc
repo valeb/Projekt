@@ -1,12 +1,14 @@
 Check_RFID
 
-    lda     #TModeReg
+    lda     #TxControlReg
     sta     Adresse
-    lda     #%10101010
+    jsr     Read_RFID 
+    lda     Daten   
+    ORA     #%0000011
     sta     Daten
     jsr     Write_RFID
     
-    lda     #TModeReg
+    lda     #TxControlReg
     sta     Adresse
     jsr     Read_RFID
     lda     Daten
@@ -36,7 +38,6 @@ S1Delay
     lda     SPI1D
     
     lda     Daten
-
     sta     SPI1D
 
 S2Delay 
