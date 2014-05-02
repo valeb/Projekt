@@ -221,7 +221,10 @@ NVOPT:              equ    $0000FFBF                                ;*** NVOPT -
 TimerFlag       ds      1T
 RealTimeCounter ds      1T
 
+RFID_Flag       ds      1T
 
+Daten           ds      1T 
+Status          ds      1T
 
 
 ;************************************************************************************************
@@ -232,8 +235,12 @@ RealTimeCounter ds      1T
 
                 ORG     E_RAM_START
                 
+                
+Counter         ds      2T                                                              
+Adresse         ds      1T                                                              
+                 
 
-TempVar         ds      1T
+Initial         ds      1T
                 INCLUDE 'Equates.inc'
 ;************************************************************************************************
 ;*                                                                                              *
@@ -267,9 +274,22 @@ Main_Loop
                 
                 ; Eigene Routinen
                 
+                lda     Initial
+                cmpa    #0T
+                bhi     Init_Done
+                jsr     Init_RFID
+                lda     #1T
+                sta     Initial   
+Init_Done                
+                
                 jsr     Check_RFID
                 
-                             
+                lda     RFID_Flag
+                cmpa    #$FF
+                bne     Nix
+                bset    6,PORTD
+Nix                
+                
                 bra     Main_Loop
 
 
@@ -296,7 +316,11 @@ Main_Loop
 ;*                                                                                              *
 ;*                                                                                              *
 ;*      Variabeln:                                                                  		        *
-;*      RFID_Tag    ds    2T                                               											*
+;*    ??RFID_Tag        ds    2T                                           											*
+;*      Counter         ds    1T                                                                *
+;*      Adresse         ds    1T                                                                *
+;*      Daten           ds    1T                                                                *
+;*      Status          ds    1T                                                                *          
 ;*                                                                                              *
 ;*      Include:                                                                         	      *
 ;*      INCLUDE RFID.inc                                                   											*
@@ -305,110 +329,251 @@ Main_Loop
 ;*      jsr   Check_RFID											                                                  *
 ;*                                                                                              *
 ;*      Init:                                                                       		        *
-;*      jsr     Init_SPI 		                                                                    *
 ;*      jsr     Init_RFID                                                                       *
 ;*                                                                                              *
 ;************************************************************************************************
 
 
-Init_SPI
-    mov   #%01110100,SPI1C1   ; SPI Aktiviert als Master
-;           ||||||||
-;           ||||||||_____  Shifter directiom.  0 = 7..0
-;           |||||||______  SS Output enable = 0
-;           ||||||_______  Clock Pahse, 0 = Middle o. Cycle
-;           |||||________  Clock Polarity 0 = Active High
-;           ||||_________  MSTR, 1 = Master
-;           |||__________  Transmit Interrupt enable
-;           ||___________  SPI enable
-;           |____________  Interrupt enable
-
-    mov   #%00000000,SPI1C2   
-;           ||||||||
-;           ||||||||_____  Bidirectional enable
-;           |||||||______  SPI Stop in Wait mode
-;           ||||||_______  nc
-;           |||||________  Bidirectional, Output enable
-;           ||||_________  Mode-Fault enable
-;           |||__________  nc
-;           ||___________  nc
-;           |____________  nc
- 
- 
-
-    mov   #%01110111,SPI1BR     ; Stellt den SPI_Clock ein
-;           ||||||||
-;           ||||||||_____  )
-;           |||||||______  > Timer Scaler 2..256 (256)
-;           ||||||_______  )
-;           |||||________  nc
-;           ||||_________  )
-;           |||__________  > Timer Prescaler 1..8 (8)
-;           ||___________  )
-;           |____________  nc
-
-    rts
-    
-SPI_Clock
-
-    pshh
-    
-    lda   #%01110111    
-    sta   SPI1BR
-    
-    pulh 
-    
-    rti   
-    
-    
 Init_RFID
 
-    ;   Antenne aktivieren
-    lda     #TxControlReg
-    lsla
-    AND     #%1111110
-    ORA     #%1000000 
-    
-    sta     SPI1D
-     
-Delay1
+  ;//Timer: TPrescaler*TreloadVal/6.78MHz = 24ms
+  ;Write_MFRC522(TModeReg, 0x8D);		//Tauto=1; f(Timer) = 6.78MHz/TPreScaler
+  ;Write_MFRC522(TPrescalerReg, 0x3E);	//TModeReg[3..0] + TPrescalerReg
+  ;Write_MFRC522(TReloadRegL, 30);           
+  ;Write_MFRC522(TReloadRegH, 0);
 
-    brclr    7,SPI1S,Delay1
+  ;Write_MFRC522(TxAutoReg, 0x40);		//100%ASK
+  ;Write_MFRC522(ModeReg, 0x3D);		//CRC initilizate value 0x6363	???
+
+    ;Reset Durchführen
+    lda     #CommandReg
+    sta     Adresse
+    lda     #PCD_RESETPHASE
+    sta     Daten
+    jsr     Write_RFID    
     
-    lda     SPI1D
-   
+    lda     #TModeReg
+    sta     Adresse
+    lda     #$8D
+    sta     Daten
+    jsr     Write_RFID
+    
+    lda     #TPrescalerReg
+    sta     Adresse
+    lda     #$3E
+    sta     Daten
+    jsr     Write_RFID
+    
+    lda     #TReloadRegL
+    sta     Adresse
+    lda     #30T
+    sta     Daten
+    jsr     Write_RFID
+ 
+    lda     #TReloadRegH
+    sta     Adresse
+    lda     #$0
+    sta     Daten
+    jsr     Write_RFID
+
+    lda     #TxAutoReg
+    sta     Adresse
+    lda     #$40
+    sta     Daten
+    jsr     Write_RFID
+
+    lda     #ModeReg
+    sta     Adresse
+    lda     #$3D
+    sta     Daten
+    jsr     Write_RFID
+      
+    ; Antenne aktivieren
+    lda     #TxControlReg
+    sta     Adresse
+    jsr     Read_RFID 
+    lda     Daten   
     ORA     #%0000011
-    
-    sta     TempVar
-    
-    lda     #TxControlReg
-    lsla
-    AND     #%0111110
-    
-    sta     SPI1D
-    
-Delay2
+    sta     Daten
+    jsr     Write_RFID
 
-    brclr   7,SPI1S,Delay2
-    
-    lda     TempVar
-    sta     SPI1D
-    
-Delay3
-
-    brclr   7,SPI1S,Delay3    
-         
-    rts
-        
+    rts        
 
 Check_RFID
 
     ;   MFRC5522_Request
-    ;   Status = Ok ?
-    ;   Ausgeben Karte entdeckt
+    
+    lda     RFID_Flag
+    cmpa    #$00
+    beq     No_Transfer
+    jmp     Transfer
+
+No_Transfer    
+    
+    lda     CollReg
+    sta     Adresse
+    jsr     Read_RFID
+    lda     Daten
+    ORA     #$7F
+    sta     Daten
+    jsr     Write_RFID
+    
+    ; MFRC5522_ToCard
+    
+    lda     #CommandReg           ;Derzeitiges Kommando Unterbrecehn
+    sta     Adresse
+    lda     #PCD_IDLE
+    sta     Daten
+    jsr     Write_RFID
+    
+    lda     #CommIrqReg           ;Alle Interrupt-Bits löschen
+    sta     Adresse
+    lda     #$7F
+    sta     Daten
+    jsr     Write_RFID
+    
+    lda     #FIFOLevelReg         ;Buffer Initialisieren
+    sta     Adresse               ;Flush-Buffer Pin
+    jsr     Read_RFID
+    lda     Daten
+    ORA     #$80
+    sta     Daten
+    jsr     Write_RFID
+    
+    lda     #FIFODataReg          ;Daten in Buffer schreiben
+    sta     Adresse               
+    lda     #PICC_REQIDL          ;Nach allen Tags suchen
+    sta     Daten
+    jsr     Write_RFID
+    
+    lda     BitFramingReg
+    sta     Adresse
+    lda     #$07
+    sta     Daten
+    jsr     Write_RFID
       
-      
+    lda     #CommandReg           ;FIFO-Buffer hinaussenden 
+    sta     Adresse
+    lda     #PCD_TRANSCEIVE       ;Senden-und-Empfangen Befehl
+    sta     Daten
+    jsr     Write_RFID
+    
+    lda     #BitFramingReg        ;StartSend_Bit auf 1 setzen
+    sta     Adresse
+    jsr     Read_RFID
+    lda     Daten
+    ORA     #$80
+    sta     Daten
+    jsr     Write_RFID
+    
+    lda     #$01
+    sta     RFID_Flag
+    
+Transfer
+ 
+    lda     RFID_Flag
+    cmpa    #$01
+    beq     Ende_RFID
+
+Ende_Transfer
+
+    lda     #ErrorReg              ;Check 4 versch. Error-Flags
+    sta     Adresse
+    jsr     Read_RFID
+    lda     Daten
+    brset   4,Daten,No_Tag
+    brset   2,Daten,No_Tag
+    brset   0,Daten,No_Tag
+    
+    lda     RFID_Flag                ;Check Timer_IRQ                        
+    cmpa    #$04
+    beq     No_Tag
+    
+    ;an dieser Stelle Sollte ein Tag vorhanen sein
+    
+    lda     #$FF
+    sta     RFID_Flag
+    bra     Ende_RFID
+   
+    
+No_Tag
+    lda     #0T
+    sta     RFID_Flag
     rts
+
+      
+Ende_RFID
+   
+    rts
+    
+    
+;***** Sende Daten *******************************************************************************    
+
+Write_RFID
+
+    brclr   5,SPI1S,Ende_RW
+    
+    lda     Adresse
+    lsla
+    AND     #%01111110    
+    sta     SPI1D
+
+    bclr    3,PORTE
+    
+S1Delay 
+    brclr   7,SPI1S,S1Delay
+    
+    lda     SPI1D
+    
+    lda     Daten
+
+    sta     SPI1D
+
+S2Delay 
+    brclr   7,SPI1S,S2Delay
+    
+    lda     SPI1D
+    
+    bset    3,PORTE
+    
+Ende_RW    
+        
+    rts
+  
+;***** Empfange Daten ****************************************************************************  
+    
+Read_RFID
+
+    brclr   5,SPI1S,Ende_RW    
+        
+    lda     Adresse
+    lsla
+    AND     #%01111110
+    ORA     #%10000000 
+
+    sta     SPI1D
+    
+    bclr    3,PORTE
+    
+S3Delay
+    brclr    7,SPI1S,S3Delay
+    
+    lda     SPI1D
+    
+    lda     #$00
+
+    sta     SPI1D
+    
+S4Delay
+    brclr    7,SPI1S,S4Delay
+    
+    lda     SPI1D
+
+    sta     Daten    
+    bset    3,PORTE     
+        
+    rts    
+  
                 INCLUDE 'MFRC522_Regs.inc'
 ;************************************************************************************************
 ;*                                                                                              *
@@ -443,8 +608,8 @@ PICC_HALT             	EQU        $50               ;sleep mode
 
 ;THe mistake code that return when communicate with MF522
 MI_OK                 	EQU        $0
-MI_NOTAGERR           	EQU	   $1
-MI_ERR                	EQU	   $2
+MI_NOTAGERR           	EQU	       $1
+MI_ERR                	EQU	       $2
 
 
 ;------------------MFRC522 register ---------------
@@ -516,7 +681,181 @@ Reserved31            	EQU        $3C
 Reserved32            	EQU        $3D   
 Reserved33            	EQU        $3E   
 Reserved34		          EQU        $3F
+                INCLUDE 'SPI.inc'
+;************************************************************************************************
+;*      AW32-RFID-Programm  Version 1.0                                                        	*
+;*                                                                                              *
+;*      Revision vom 21. Oktober 2011                                                           *
+;*                                                                                              *
+;*      Name: Valentin Bernard                                                                  *
+;*      Klasse: 5AEL                                                                            *
+;*      Version: 1.0                                                                            *
+;*                                                                       			                  *    
+;*      Synchrone serielle Schnittstelle                       			                            *
+;*                                                                                              *
+;*      Include:                                                                         	      *
+;*      INCLUDE 'SPI.inc'                                                   										*
+;*                                                                                              *
+;*      Init:                                                                       		        *
+;*      jsr     Init_SPI 		                                                                    *
+;*                                                                                              *
+;************************************************************************************************
 
+
+Init_SPI
+    mov   #%01011100,SPI1C1   ; SPI Aktiviert als Master
+;           ||||||||
+;           ||||||||_____  Shifter directiom.  0 = 7..0
+;           |||||||______  SS Output enable = 0
+;           ||||||_______  Clock Pahse, 0 = Middle o. Cycle
+;           |||||________  Clock Polarity 0 = Active High
+;           ||||_________  MSTR, 1 = Master
+;           |||__________  Transmit Interrupt enable
+;           ||___________  SPI enable
+;           |____________  Interrupt enable
+
+    mov   #%00000000,SPI1C2   
+;           ||||||||
+;           ||||||||_____  Bidirectional enable
+;           |||||||______  SPI Stop in Wait mode
+;           ||||||_______  nc
+;           |||||________  Bidirectional, Output enable
+;           ||||_________  Mode-Fault enable
+;           |||__________  nc
+;           ||___________  nc
+;           |____________  nc
+ 
+ 
+
+    mov   #%00110000,SPI1BR     ; Stellt den SPI_Clock ein
+;           ||||||||
+;           ||||||||_____  )
+;           |||||||______  > Timer Scaler 2..256 (2)
+;           ||||||_______  )
+;           |||||________  nc
+;           ||||_________  )
+;           |||__________  > Timer Prescaler 1..8
+;           ||___________  )
+;           |____________  nc
+
+    rts
+    
+    
+                INCLUDE 'Timerinterrupt_V20.inc'
+;************************************************************************************************
+;*                                                                                              *
+;*      AW32-Timerinterrupt  Version 1.0                                                        * 
+;*                                                                                              *
+;*      Revision vom 24.01.2014                                                                 * 
+;*                                                                                              *
+;*      Name: Valentin Bernard                                                                  * 
+;*      Klasse: 5AEL                                                                            * 
+;*      Version: 1.0                                                                            * 
+;*                                                                                              *
+;*      Timer für die Alarmausgabe. Frequenz veränderbar über T_Low und T_High.                 *
+;*                                                                                              *
+;*      In Init kopieren:                                                                       * 
+;*      jsr     Init_Alarmtimer                                                                 * 
+;*                                                                                              *
+;*      In ASM kopieren:                                                                        *
+;*      INCLUDE 'Timerinterrupt_V10.inc'                                                        * 
+;*                                                                                              *
+;************************************************************************************************
+
+Init_RFIDTimer
+ 
+  mov   #%00000000,TPM1SC     ; Timer 1CH2 STOP
+
+
+  mov   #$00,TPM1C4VH         ; Setzt einen Output Compare nach $78 Clicks
+  mov   #$57,TPM1C4VL         ; das sind bei dem gegebenen Clock ca. 25ms
+                           
+
+  mov   #%01010000,TPM1C4SC   ; Timer 1 Channel 5 Gesetzt für Output Compare $50
+;         ||||||||
+;         ||||||||_____  not used
+;         |||||||______  not used
+;         ||||||_______  ELS1A Edge Level Select Bits for Channel 1
+;         |||||________  ELS1B [B:A]=[0:1]=Toggle Output con Compare  [0:0]=Software compare only
+;         ||||_________  MS1A Mode select for Timer 1  [B:A]=[0:1] = Output compare
+;         |||__________  MS1B
+;         ||___________  CH1IE 0=Interr. disable  1=Interrupt enable
+;         |____________  CH1F  0=No input capt. or Outp.Comp on Pin  1=Input capt. or Outp.Comp on Pin 
+ 
+
+  mov   #%00001000,TPM1SC     ; Startet den Timer 1CH2
+;         ||||||||
+;         ||||||||_____  PS0  Prescaler : 0:0:0=Clock/1    0:0:1=Clock/2    0:1:0=Clock/4
+;         |||||||______  PS1              0:1:1=Clock/8    1:0:0=Clock/16   1:0:1=Clock/32
+;         ||||||_______  PS2              1:1:0=Clock/64   1:1:1=Clock/128
+;         |||||________  CLKS [A] --> [B:A]  0:0 = TPM OFF  0:1 = Bus rate Clock (BUSCLK)
+;         ||||_________  CLKS [B] CLK Source 1:0 = Fixed system Clock (XCLX) 1:1 Ex. Source (TPMxCLK)
+;         |||__________  CPWMS Normal Op (0) or Center alligned PWM (1)
+;         ||___________  TOIE Timer Interrupt Enable
+;         |____________  TOV - Timer Overflow, Read only
+
+  rts
+
+
+;***********************************************************************************************************
+;*   ALARMTON INTERRUPRT: Toggelt PB0                                                                      *
+;***********************************************************************************************************
+
+Timer_Over
+
+    pshh
+    
+    lda     TPM1C4SC
+    mov     #%01010000,TPM1C4SC   ;Flag löschen
+  
+    lda     TPM1C4VL              ; Nächster Interrupt in weiteren 78 Clicks
+    add     #$57                  ; Also wieder $004E x 203,451 nsec
+    sta     TPM1C5VL	
+
+    lda     TPM1C5VH
+    add     #$00		 
+    sta     TPM1C5VH
+    
+    lda     RFID_Flag
+    cmp     #$01
+    bne     Ende_Timer
+    
+    ldhx    Counter
+    aix     #1T
+    sthx    Counter
+    cphx    #2000T
+    bhs     Timer_Off2
+     
+    lda     #CommIrqReg
+    sta     Adresse
+    jsr     Read_RFID
+    lda     Daten
+    sta     Status
+    
+    brset   5,Status,Timer_Off1        ;Check Rx_IRQ
+    brset   4,Status,Timer_Off1        ;Check Idle_IRQ 
+    brset   0,Status,Timer_Off2        ;Check Timer_IRQ
+    
+    bra     Ende_Timer
+    
+Timer_Off1
+      
+    lda     #$02
+    sta     RFID_Flag    
+    bra     Ende_Timer
+
+Timer_Off2
+      
+    lda     #$04
+    sta     RFID_Flag
+    bra     Ende_Timer    
+   
+
+Ende_Timer
+
+    pulh
+
+    rti
 
                 INCLUDE 'Init.inc'              ; Hier startet der µC / Initialisierungen
 ;************************************************************************************************
@@ -538,22 +877,21 @@ Main_Init
                 sta     PORTD
                 sta     PORTE
 
-                mov     #%00000000,PTADD        ; Data Direction für PORTA
-                mov     #%00000000,PTBDD        ; Data Direction für PORTB                
+                mov     #%11111111,PTADD        ; Data Direction für PORTA
+                mov     #%00000001,PTBDD        ; Data Direction für PORTB                
                 mov     #%00000000,PTCDD        ; DDR für Port C: 
-                mov     #%00000000,PTDDD        ; DDR für PORT D: 
-                mov     #%00000000,PTEDD        ; DDR für PORT E: 
+                mov     #%11000000,PTDDD        ; DDR für PORT D: 
+                mov     #%11001000,PTEDD        ; DDR für PORT E: 
                 mov     #%00000000,PTFDD        ; DDR für PORT F: 
-                mov     #%00000000,PTGDD        ; DDR für PORT G: 
+                mov     #%00000011,PTGDD        ; DDR für PORT G:
 
                 jsr     Init_MCU                ; [.] Controller Clock usw.       
                 jsr     Init_Realtime           ; [Timer.inc] Realtime + PWM-Kanäle
-                
+                jsr     Init_RFIDTimer
                 jsr     Init_SPI
-                jsr     Init_RFID 
                 
-                cli                             ; Interrupts freigeben
-
+                cli                             ; Interrupts freigeben 
+                
                 jmp     Main_Loop
 
                 
@@ -821,13 +1159,13 @@ Dummy_ISR21
                 DC.W    Dummy_ISR8      ; $FFDA+$FFDB   Vector SCI1_TX
                 DC.W    Dummy_ISR9      ; $FFDC+$FFDC   Vector SCI1_RX
                 DC.W    Dummy_ISR10     ; $FFDE+$FFDF   Vector SCI1_ERR
-                DC.W    SPI_Clock       ; $FFE0+$FFE1   Vector SPI1
+                DC.W    Dummy_ISR11     ; $FFE0+$FFE1   Vector SPI1
                 DC.W    Dummy_ISR12     ; $FFE2+$FFE3   Vector TPM2OVF                
                 DC.W    Dummy_ISR13     ; $FFE4+$FFE5   Vector TMP2CH1                
                 DC.W    Dummy_ISR14     ; $FFE6+$FFE7   Vector TPM2CH0                
                 DC.W    Dummy_ISR15     ; $FFE8+$FFE9   Vector TPM1OVF                
                 DC.W    Dummy_ISR16     ; $FFEA+$FFEB   Vector TPM1CH5
-                DC.W    Dummy_ISR17     ; $FFEC+$FFED   Vector TPM1CH4
+                DC.W    Timer_Over      ; $FFEC+$FFED   Vector TPM1CH4
                 DC.W    Dummy_ISR18     ; $FFEE+$FFEF   Vector TPM1CH3
                 DC.W    Dummy_ISR19     ; $FFF0+$FFF1   Vector TPM1CH2
                 DC.W    Dummy_ISR20     ; $FFF2+$FFF3   Vector TPM1CH1

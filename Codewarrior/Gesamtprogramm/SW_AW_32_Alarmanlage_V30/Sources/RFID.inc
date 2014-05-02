@@ -44,8 +44,7 @@ Init_RFID
     sta     Adresse
     lda     #PCD_RESETPHASE
     sta     Daten
-    jsr     Write_RFID
-    
+    jsr     Write_RFID  
     
     lda     #TModeReg
     sta     Adresse
@@ -100,7 +99,10 @@ Check_RFID
     
     lda     Counter
     cmpa    #0T
-    bne     Transfer
+    beq     No_Transfer
+    jmp     Transfer
+
+No_Transfer    
     
     lda     #BitFramingReg
     sta     Adresse
@@ -110,14 +112,14 @@ Check_RFID
     
     ; MFRC5522_ToCard
      
-    lda     #CommIEnReg
-    sta     Adresse
+    lda     #CommIEnReg           ;Interrupts erlauben
+    sta     Adresse               
     lda     #$77
     ORA     #$80
     sta     Daten
     jsr     Write_RFID
     
-    lda     #CommIrqReg
+    lda     #CommIrqReg           ;Alle Interrupt-Bits löschen
     sta     Adresse
     jsr     Read_RFID
     lda     Daten
@@ -125,33 +127,33 @@ Check_RFID
     sta     Daten
     jsr     Write_RFID
     
-    lda     #FIFOLevelReg
-    sta     Adresse
+    lda     #FIFOLevelReg         ;Buffer Initialisieren
+    sta     Adresse               ;Flush-Buffer Pin
     jsr     Read_RFID
     lda     Daten
     ORA     #$80
     sta     Daten
     jsr     Write_RFID
        
-    lda     #CommandReg
+    lda     #CommandReg           ;Derzeitiges Kommando Unterbrecehn
     sta     Adresse
     lda     #PCD_IDLE
     sta     Daten
     jsr     Write_RFID
     
-    lda     #FIFODataReg
-    sta     Adresse
-    lda     #PICC_REQIDL
+    lda     #FIFODataReg          ;Daten in Buffer schreiben
+    sta     Adresse               
+    lda     #PICC_REQALL          ;Nach allen Tags suchen
     sta     Daten
     jsr     Write_RFID
     
-    lda     #CommandReg
+    lda     #CommandReg           ;FIFO-Buffer hinaussenden 
     sta     Adresse
-    lda     #PCD_TRANSCEIVE
+    lda     #PCD_TRANSCEIVE       ;Senden-und-Empfangen Befehl
     sta     Daten
     jsr     Write_RFID
     
-    lda     #BitFramingReg
+    lda     #BitFramingReg        ;StartSend_Bit auf 1 setzen
     sta     Adresse
     jsr     Read_RFID
     lda     Daten
@@ -161,27 +163,38 @@ Check_RFID
     
 Transfer
 
-    lda     #1T
-    sta     Counter
         
-    lda     CommIrqReg
+    lda     #CommIrqReg
     sta     Adresse
     jsr     Read_RFID
     lda     Daten
     sta     Status
-        
-    cmpa    #$30
-    beq     Ende_Transfer
+    
+    lda     Status        ;Check Timer_IRQ
     AND     #$01
     cmpa    #$01
-    bne     Ende_RFID
+    beq     Ende_Transfer
+    
+    lda     Status        ;Check Idle_IRQ 
+    AND     #$10
+    cmpa    #$10
+    beq     Ende_Transfer
+    
+    lda     Status        ;Check Rx_IRQ
+    AND     #$20
+    cmpa    #$20
+    beq     Ende_Transfer
+    
+    lda     Counter
+    inca
+    sta     Counter    
+    cmpa    #3T
+    bls     Ende_RFID
+
+
 
 Ende_Transfer
-
-    lda     #0T
-    sta     Counter
-        
-    lda     #BitFramingReg
+    lda     #BitFramingReg        ;StartSend_Bit auf 0 setzen
     sta     Adresse
     jsr     Read_RFID
     lda     Daten
@@ -189,20 +202,38 @@ Ende_Transfer
     sta     Daten
     jsr     Write_RFID 
     
-    lda     ErrorReg
+    lda     Counter               
+    cmpa    #4T
+    beq     Ende_RFID
+    lda     #0T
+    sta     Counter        
+
+    lda     #ErrorReg              ;Check 4 versch. Error-Flags
     sta     Adresse
     jsr     Read_RFID
     lda     Daten
+    AND     #$1B
     cmpa    #$1B
     beq     Ende_RFID
-    
-    lda     Status
-    AND     #$77
-    AND     #$01                        
-    cmpa    #$1
+    cmpa    #$10
+    beq     Ende_RFID
+    cmpa    #$0B
+    beq     Ende_RFID
+    cmpa    #$08
+    beq     Ende_RFID
+    cmpa    #$03
+    beq     Ende_RFID
+    cmpa    #$02
+    beq     Ende_RFID
+    cmpa    #$01
     beq     Ende_RFID
     
-    ;an dieser Stelle Sollte ein Tag vorhanen sein
+    lda     Status                ;Check Timer_IRQ
+    AND     #$01                        
+    cmpa    #$01
+    beq     Ende_RFID
+    
+    ;an dieser Stelle sollte ein Tag vorhanen sein
     
     lda     #$FF
     sta     RFID_Flag

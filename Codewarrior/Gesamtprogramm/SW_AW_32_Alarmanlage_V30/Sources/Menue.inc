@@ -121,7 +121,6 @@ StartText2
 
 Inaktiv
           
-          jsr     Check_RFID
           jsr     Blink_Gruen
               
           ;Ausgabe: "Alarm Inaktiv"
@@ -137,10 +136,6 @@ Inaktiv
           lda     T0_Flag
           cmpa    #%00000001        
           beq     ZU_Aktiv
-          
-          lda     RFID_Flag
-          cmpa    #$FF
-          beq     ZU_Aktiv
                     
           rts
           
@@ -150,7 +145,7 @@ Inaktiv
 Aktiv      
           
           ;jsr     Passwort
-          ;jsr     Check-RFID
+          jsr     Check_RFID
           jsr     Bewegungsmelder
                    
           jsr     Blink_Rot
@@ -169,11 +164,10 @@ Aktiv
           lda     T0_Flag
           cmpa    #%00000001        
           beq     ZU_Inaktiv
-          
-          
+                    
           lda     RFID_Flag
           cmpa    #$FF
-          beq     ZU_Aktiv
+          beq     ZU_Inaktiv
           
           ;lda     PW_Flag
            

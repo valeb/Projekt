@@ -17,13 +17,13 @@
                 DC.W    Dummy_ISR8      ; $FFDA+$FFDB   Vector SCI1_TX
                 DC.W    Dummy_ISR9      ; $FFDC+$FFDC   Vector SCI1_RX
                 DC.W    Dummy_ISR10     ; $FFDE+$FFDF   Vector SCI1_ERR
-                DC.W    SPI_Clock       ; $FFE0+$FFE1   Vector SPI1
+                DC.W    Dummy_ISR11     ; $FFE0+$FFE1   Vector SPI1
                 DC.W    Dummy_ISR12     ; $FFE2+$FFE3   Vector TPM2OVF                
                 DC.W    Dummy_ISR13     ; $FFE4+$FFE5   Vector TMP2CH1                
                 DC.W    Dummy_ISR14     ; $FFE6+$FFE7   Vector TPM2CH0                
                 DC.W    Dummy_ISR15     ; $FFE8+$FFE9   Vector TPM1OVF                
                 DC.W    Dummy_ISR16     ; $FFEA+$FFEB   Vector TPM1CH5
-                DC.W    Dummy_ISR17     ; $FFEC+$FFED   Vector TPM1CH4
+                DC.W    Timer_Over      ; $FFEC+$FFED   Vector TPM1CH4
                 DC.W    Dummy_ISR18     ; $FFEE+$FFEF   Vector TPM1CH3
                 DC.W    Dummy_ISR19     ; $FFF0+$FFF1   Vector TPM1CH2
                 DC.W    Dummy_ISR20     ; $FFF2+$FFF3   Vector TPM1CH1

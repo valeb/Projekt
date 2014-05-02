@@ -60,9 +60,22 @@ Main_Loop
                 
                 ; Eigene Routinen
                 
+                lda     Initial
+                cmpa    #0T
+                bhi     Init_Done
+                jsr     Init_RFID
+                lda     #1T
+                sta     Initial   
+Init_Done                
+                
                 jsr     Check_RFID
                 
-                             
+                lda     RFID_Flag
+                cmpa    #$FF
+                bne     Nix
+                bset    6,PORTD
+Nix                
+                
                 bra     Main_Loop
 
 
@@ -77,6 +90,8 @@ Main_Loop
 
                 INCLUDE 'RFID.inc'
                 INCLUDE 'MFRC522_Regs.inc'
+                INCLUDE 'SPI.inc'
+                INCLUDE 'Timerinterrupt_V20.inc'
 
                 INCLUDE 'Init.inc'              ; Hier startet der µC / Initialisierungen
                 INCLUDE 'Realtime_T1CH0.inc'    ; Alles für die Timer (Realtime)

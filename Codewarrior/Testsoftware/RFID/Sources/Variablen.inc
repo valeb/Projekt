@@ -10,7 +10,10 @@
 TimerFlag       ds      1T
 RealTimeCounter ds      1T
 
+RFID_Flag       ds      1T
 
+Daten           ds      1T 
+Status          ds      1T
 
 
 ;************************************************************************************************
@@ -21,5 +24,9 @@ RealTimeCounter ds      1T
 
                 ORG     E_RAM_START
                 
+                
+Counter         ds      2T                                                              
+Adresse         ds      1T                                                              
+                 
 
-TempVar         ds      1T
+Initial         ds      1T

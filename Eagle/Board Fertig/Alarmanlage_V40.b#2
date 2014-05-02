@@ -118,7 +118,7 @@
 <text x="56.8325" y="59.69" size="1.016" layer="27">PD2</text>
 <text x="34.6075" y="48.895" size="1.016" layer="27">PD3</text>
 <text x="44.7675" y="48.895" size="1.016" layer="27">PD4</text>
-<text x="54.9275" y="48.895" size="1.016" layer="27">PF7</text>
+<text x="54.9275" y="48.895" size="1.016" layer="27">PF6</text>
 <text x="44.7675" y="38.735" size="1.016" layer="27">PF7</text>
 <text x="34.6075" y="38.735" size="1.016" layer="27">PF5</text>
 <text x="54.9275" y="38.735" size="1.016" layer="27">PF4</text>
@@ -134,7 +134,7 @@
 <text x="94.615" y="14.9225" size="1.6764" layer="27">GND</text>
 <text x="95.5675" y="20.32" size="1.016" layer="27">S_in</text>
 <text x="90.4875" y="44.7675" size="1.016" layer="27">PE3</text>
-<text x="90.4875" y="42.2275" size="1.016" layer="27">PE1</text>
+<text x="90.4875" y="42.2275" size="1.016" layer="27">PE2</text>
 <text x="90.4875" y="39.6875" size="1.016" layer="27">Rx</text>
 <text x="90.17" y="37.465" size="1.016" layer="27">Tx</text>
 <text x="94.9325" y="42.8625" size="1.016" layer="27">+3,3V</text>
