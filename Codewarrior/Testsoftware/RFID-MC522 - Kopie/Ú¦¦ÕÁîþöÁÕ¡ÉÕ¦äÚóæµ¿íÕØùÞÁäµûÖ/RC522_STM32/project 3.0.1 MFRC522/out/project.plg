@@ -1,0 +1,54 @@
+<html>
+<body>
+<pre>
+<h1>µVision Build Log</h1>
+<h2>Project:</h2>
+H:\RC522_STM32\project 3.0.1 MFRC522\project.uvproj
+Project File Date:  04/17/2012
+
+<h2>Output:</h2>
+Build target 'FLASH'
+assembling startup_stm32f10x_hd.s...
+compiling Retarget.c...
+compiling misc.c...
+compiling project.c...
+project.c(204): warning:  #550-D: variable "status" was set but never used
+project.c:      u8 status;
+project.c:         ^
+project.c(205): warning:  #177-D: variable "tmp" was declared but never referenced
+project.c:      u8 tmp;
+project.c:         ^
+project.c: project.c: 2 warnings, 0 errors
+compiling Init_SYS.c...
+compiling rc522.c...
+user\rc522.c(208): warning:  #223-D: function "memcpy" declared implicitly
+user\rc522.c:       memcpy(&ucComMF522Buf[2], pKey, 6); 
+user\rc522.c:       ^
+user\rc522.c(200): warning:  #177-D: variable "i" was declared but never referenced
+user\rc522.c:       u8   i,ucComMF522Buf[MAXRLEN]; 
+user\rc522.c:            ^
+user\rc522.c(291): warning:  #550-D: variable "status" was set but never used
+user\rc522.c:       u8   status;
+user\rc522.c:            ^
+user\rc522.c(490): warning:  #69-D: integer conversion resulted in truncation
+user\rc522.c:           i = 100000;
+user\rc522.c:               ^
+user\rc522.c: user\rc522.c: 4 warnings, 0 errors
+compiling Lcd_ILI9320.c...
+user\Lcd_ILI9320.c(656): warning:  #188-D: enumerated type mixed with another type
+user\Lcd_ILI9320.c:     LCD_SetRegion(x,y,x+b-1,y+h-1,1);
+user\Lcd_ILI9320.c:                                   ^
+user\Lcd_ILI9320.c(728): warning:  #177-D: variable "tmp16" was declared but never referenced
+user\Lcd_ILI9320.c:     u16 tmp16=0;
+user\Lcd_ILI9320.c:         ^
+user\Lcd_ILI9320.c(729): warning:  #177-D: variable "buf" was declared but never referenced
+user\Lcd_ILI9320.c:     u8 buf[32];
+user\Lcd_ILI9320.c:        ^
+user\Lcd_ILI9320.c(730): warning:  #177-D: variable "pos" was declared but never referenced
+user\Lcd_ILI9320.c:     u32 pos;
+user\Lcd_ILI9320.c:         ^
+user\Lcd_ILI9320.c: user\Lcd_ILI9320.c: 4 warnings, 0 errors
+linking...
+Program Size: Code=8884 RO-data=1872 RW-data=24 ZI-data=1088  
+FromELF: creating hex file...
+".\out\project.axf" - 0 Error(s), 10 Warning(s).

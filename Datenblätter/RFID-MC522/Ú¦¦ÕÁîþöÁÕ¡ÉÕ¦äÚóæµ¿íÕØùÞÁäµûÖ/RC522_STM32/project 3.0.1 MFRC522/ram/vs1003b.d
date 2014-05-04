@@ -1,0 +1,9 @@
+.\ram\vs1003b.o: user\Vs1003b.c
+.\ram\vs1003b.o: .\cm3\stm32f10x.h
+.\ram\vs1003b.o: .\cm3\core_cm3.h
+.\ram\vs1003b.o: A:\keil\ARM\RV31\INC\stdint.h
+.\ram\vs1003b.o: .\cm3\system_stm32f10x.h
+.\ram\vs1003b.o: .\user\stm32f10x_conf.h
+.\ram\vs1003b.o: .\library\inc\misc.h
+.\ram\vs1003b.o: .\cm3\stm32f10x.h
+.\ram\vs1003b.o: user\Vs1003b.h

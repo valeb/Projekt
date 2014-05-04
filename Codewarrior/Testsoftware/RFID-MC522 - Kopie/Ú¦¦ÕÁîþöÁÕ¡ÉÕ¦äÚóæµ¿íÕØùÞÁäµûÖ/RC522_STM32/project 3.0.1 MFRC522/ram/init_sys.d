@@ -1,0 +1,10 @@
+.\ram\init_sys.o: user\Init_SYS.c
+.\ram\init_sys.o: user\Init_SYS.h
+.\ram\init_sys.o: .\cm3\stm32f10x.h
+.\ram\init_sys.o: .\cm3\core_cm3.h
+.\ram\init_sys.o: d:\Keil\ARM\RV31\INC\stdint.h
+.\ram\init_sys.o: .\cm3\system_stm32f10x.h
+.\ram\init_sys.o: .\user\stm32f10x_conf.h
+.\ram\init_sys.o: .\library\inc\misc.h
+.\ram\init_sys.o: .\cm3\stm32f10x.h
+.\ram\init_sys.o: d:\Keil\ARM\RV31\INC\stdio.h

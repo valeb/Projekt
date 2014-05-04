@@ -1,0 +1,1 @@
+-c --cpu Cortex-M3 -D__MICROLIB -g -O0 --apcs=interwork -I.\cm3 -I.\library\inc -I.\library\src -I.\user -I "A:\keil\ARM\INC" -I "A:\keil\ARM\INC\ST\STM32F10x" -o ".\out\lcd.o" --omf_browse ".\out\lcd.crf" --depend ".\out\lcd.d" "user\Lcd.c"

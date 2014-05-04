@@ -1,0 +1,6 @@
+"STARTUP.obj",
+".\key.obj",
+".\main.obj",
+".\rc522.obj" 
+TO "MFRC522_STC_NO12864" 
+RAMSIZE(256) 

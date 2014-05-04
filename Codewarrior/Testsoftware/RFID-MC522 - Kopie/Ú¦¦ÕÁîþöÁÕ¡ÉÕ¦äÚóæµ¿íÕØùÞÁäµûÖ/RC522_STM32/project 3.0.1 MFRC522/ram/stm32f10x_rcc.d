@@ -1,0 +1,11 @@
+.\ram\stm32f10x_rcc.o: library\src\stm32f10x_rcc.c
+.\ram\stm32f10x_rcc.o: .\library\inc\stm32f10x_rcc.h
+.\ram\stm32f10x_rcc.o: .\cm3\stm32f10x.h
+.\ram\stm32f10x_rcc.o: .\cm3\core_cm3.h
+.\ram\stm32f10x_rcc.o: A:\keil\ARM\RV31\INC\stdint.h
+.\ram\stm32f10x_rcc.o: .\cm3\system_stm32f10x.h
+.\ram\stm32f10x_rcc.o: .\user\stm32f10x_conf.h
+.\ram\stm32f10x_rcc.o: .\library\inc\stm32f10x_gpio.h
+.\ram\stm32f10x_rcc.o: .\cm3\stm32f10x.h
+.\ram\stm32f10x_rcc.o: .\library\inc\stm32f10x_usart.h
+.\ram\stm32f10x_rcc.o: .\library\inc\misc.h

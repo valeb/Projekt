@@ -1,0 +1,10 @@
+sys.o: ..\system\SYS.C
+sys.o: ..\system\sys.h
+sys.o: ..\system\COMMON_FILES\stm32f10x.h
+sys.o: ..\system\COMMON_FILES\core_cm3.h
+sys.o: C:\Keil\ARM\RV31\INC\stdint.h
+sys.o: ..\system\COMMON_FILES\system_stm32f10x.h
+sys.o: ..\system\COMMON_FILES\stm32f10x_conf.h
+sys.o: ..\system\COMMON_FILES\stm32f10x_rcc.h
+sys.o: ..\system\COMMON_FILES\stm32f10x_flash.h
+sys.o: ..\system\COMMON_FILES\stm32f10x_tim.h

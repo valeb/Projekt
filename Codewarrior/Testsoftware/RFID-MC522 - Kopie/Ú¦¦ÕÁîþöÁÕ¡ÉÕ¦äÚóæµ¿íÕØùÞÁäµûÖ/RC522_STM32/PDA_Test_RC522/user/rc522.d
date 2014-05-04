@@ -1,0 +1,9 @@
+rc522.o: ..\modules\rc522\rc522.c
+rc522.o: ..\modules\rc522\rc522.h
+rc522.o: ..\system\COMMON_FILES\stm32f10x_gpio.h
+rc522.o: ..\system\COMMON_FILES\stm32f10x.h
+rc522.o: ..\system\COMMON_FILES\core_cm3.h
+rc522.o: C:\Keil\ARM\RV31\INC\stdint.h
+rc522.o: ..\system\COMMON_FILES\system_stm32f10x.h
+rc522.o: ..\system\COMMON_FILES\stm32f10x_conf.h
+rc522.o: ..\system\COMMON_FILES\stm32f10x_rcc.h

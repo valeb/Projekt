@@ -1,0 +1,11 @@
+.\out\stm32f10x_rcc.o: library\src\stm32f10x_rcc.c
+.\out\stm32f10x_rcc.o: .\library\inc\stm32f10x_rcc.h
+.\out\stm32f10x_rcc.o: .\cm3\stm32f10x.h
+.\out\stm32f10x_rcc.o: .\cm3\core_cm3.h
+.\out\stm32f10x_rcc.o: d:\Keil\ARM\RV31\INC\stdint.h
+.\out\stm32f10x_rcc.o: .\cm3\system_stm32f10x.h
+.\out\stm32f10x_rcc.o: .\user\stm32f10x_conf.h
+.\out\stm32f10x_rcc.o: .\library\inc\stm32f10x_rcc.h
+.\out\stm32f10x_rcc.o: .\library\inc\stm32f10x_spi.h
+.\out\stm32f10x_rcc.o: .\cm3\stm32f10x.h
+.\out\stm32f10x_rcc.o: .\library\inc\misc.h

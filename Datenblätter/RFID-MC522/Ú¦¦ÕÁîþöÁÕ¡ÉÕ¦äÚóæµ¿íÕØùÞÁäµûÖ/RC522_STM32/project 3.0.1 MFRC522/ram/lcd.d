@@ -1,0 +1,16 @@
+.\ram\lcd.o: user\Lcd.c
+.\ram\lcd.o: user\Lcd.h
+.\ram\lcd.o: .\cm3\stm32f10x.h
+.\ram\lcd.o: .\cm3\core_cm3.h
+.\ram\lcd.o: A:\keil\ARM\RV31\INC\stdint.h
+.\ram\lcd.o: .\cm3\system_stm32f10x.h
+.\ram\lcd.o: .\user\stm32f10x_conf.h
+.\ram\lcd.o: .\library\inc\stm32f10x_exti.h
+.\ram\lcd.o: .\cm3\stm32f10x.h
+.\ram\lcd.o: .\library\inc\stm32f10x_flash.h
+.\ram\lcd.o: .\library\inc\stm32f10x_fsmc.h
+.\ram\lcd.o: .\library\inc\stm32f10x_gpio.h
+.\ram\lcd.o: .\library\inc\stm32f10x_rcc.h
+.\ram\lcd.o: .\library\inc\stm32f10x_spi.h
+.\ram\lcd.o: .\library\inc\stm32f10x_usart.h
+.\ram\lcd.o: .\library\inc\misc.h

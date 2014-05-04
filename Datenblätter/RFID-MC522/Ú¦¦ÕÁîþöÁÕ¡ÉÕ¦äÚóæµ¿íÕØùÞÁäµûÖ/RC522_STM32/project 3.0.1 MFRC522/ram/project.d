@@ -1,0 +1,12 @@
+.\ram\project.o: project.c
+.\ram\project.o: .\user\Init_SYS.h
+.\ram\project.o: .\cm3\stm32f10x.h
+.\ram\project.o: .\cm3\core_cm3.h
+.\ram\project.o: d:\Keil\ARM\RV31\INC\stdint.h
+.\ram\project.o: .\cm3\system_stm32f10x.h
+.\ram\project.o: .\user\stm32f10x_conf.h
+.\ram\project.o: .\library\inc\misc.h
+.\ram\project.o: .\cm3\stm32f10x.h
+.\ram\project.o: d:\Keil\ARM\RV31\INC\stdio.h
+.\ram\project.o: .\user\rc522.h
+.\ram\project.o: .\user\Lcd.h

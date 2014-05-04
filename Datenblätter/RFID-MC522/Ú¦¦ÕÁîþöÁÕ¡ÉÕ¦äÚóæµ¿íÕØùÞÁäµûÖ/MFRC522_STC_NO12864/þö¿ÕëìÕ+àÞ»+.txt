@@ -1,0 +1,57 @@
+使用前请先阅读相关资料，了解各芯片的操作原理。
+
+使用的编译软件为KEIL,如之前未使用过STC单片机  请把UV9.CDB文件重命名成对应版本的UV?.CDB,并将原来的替代掉(原来的最好备份下)
+
+在...\keil\c51\inc 文件夹中添加 STC11.H 文件
+
+CommAssistant.rar 为 串口调试工具 
+
+
+2张标准IC卡 各扇区密码均为0xFF 0xFF 0xFF 0xFF 0xFF 0xFF
+
+按键说明：
+
+KEY1  KEY2
+KEY3  KEY4
+
+KEY1:发送搜索到的IC卡卡号 4字节
+KEY2:
+KEY3:
+KEY4:备用
+
+通讯协议(以下数据均为16进制):
+
+第一字节表示此次发生的字节长度
+
+0.读卡号
+   02 A0
+
+1.读数据 
+   09 A1 Key0 Key1 Key2 Key3 Key4 Key5 Kn.
+
+例:0xA1为读数据标志。
+   该卡密码A为16进制:ff ff ff ff ff ff 对应Key0 Key1 Key2 Key3 Key4 Key5；
+   要读的块数为第4块 即 Kn=4；
+   则发送:09 A1 ff ff ff ff ff ff 04 .
+   返回第4块的16字节数据.
+
+2.写数据 
+   19 A2 Key0 Key1 Key2 Key3 Key4 Key5 Kn Num0 Num1 Num2 Num3 Num4 Num5 Num6 Num7 Num8 Num9 Num10 Num11 Num12 Num13 Num14 Num15.
+
+例:0xA2为写数据标志。
+   该卡密码A为16进制:FF FF FF FF FF FF 对应Key0 Key1 Key2 Key3 Key4 Key5；
+   要写的块数为第4块 即 Kn=4；
+   要写的数据位 00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F
+   则发送:19 A2 FF FF FF FF FF FF 04 00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F.
+
+3.修改密码
+   0F A3 Key0 Key1 Key2 Key3 Key4 Key5 Kn New0 New1 New2 New3 New4 New5 .
+
+例:0xA3为修改密码标志。
+   该卡原密码A为16进制:FF FF FF FF FF FF 对应Key0 Key1 Key2 Key3 Key4 Key5；
+   要修改的密码块数为第7块 即 Kn=7；(密码保存在扇区尾块,分别为7,11,15,19......)
+   要修改成的密码为 20 10 20 11 20 12 对应New0 New1 New2 New3 New4 New5
+   则发送:0F A3 FF FF FF FF FF FF 07 20 10 20 11 20 12.
+
+
+   
