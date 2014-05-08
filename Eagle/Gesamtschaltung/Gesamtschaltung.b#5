@@ -2488,7 +2488,7 @@ design rules under a new name.</description>
 <attribute name="VALUE" x="72.9262" y="71.9575" size="0.8128" layer="27"/>
 </element>
 <element name="JP1" library="pinhead" package="2X03" value="" x="93.1862" y="54.9276" smashed="yes">
-<attribute name="NAME" x="92.2337" y="51.4351" size="0.8128" layer="25" ratio="10"/>
+<attribute name="NAME" x="89.2174" y="54.1337" size="0.8128" layer="25" ratio="10" rot="R90"/>
 </element>
 <element name="C1" library="deto" package="0805F" value="100nF" x="80.01" y="78.4225" smashed="yes" rot="R90">
 <attribute name="NAME" x="78.486" y="79.3115" size="0.8128" layer="25" rot="R270"/>
@@ -2662,7 +2662,7 @@ design rules under a new name.</description>
 <attribute name="VALUE" x="10.4775" y="34.29" size="0.8128" layer="27" rot="R180"/>
 </element>
 <element name="JP2" library="pinhead" package="1X02" value="" x="2.2225" y="54.9275" smashed="yes" rot="R90">
-<attribute name="NAME" x="4.8387" y="55.4863" size="0.8128" layer="25" ratio="10" rot="R90"/>
+<attribute name="NAME" x="1.1938" y="51.3588" size="0.8128" layer="25" ratio="10"/>
 <attribute name="VALUE" x="5.3975" y="52.3875" size="1.27" layer="27" rot="R90"/>
 </element>
 <element name="C6" library="deto" package="0805F" value="100n" x="17.4625" y="32.0675" rot="R180"/>
@@ -2696,7 +2696,7 @@ design rules under a new name.</description>
 <attribute name="VALUE" x="97.4725" y="44.45" size="1.27" layer="27" rot="R270"/>
 </element>
 <element name="JP6" library="pinhead" package="1X04" value="" x="88.265" y="40.64" smashed="yes" rot="R90">
-<attribute name="NAME" x="86.4362" y="35.4838" size="0.8128" layer="25" ratio="10" rot="R90"/>
+<attribute name="NAME" x="87.2363" y="34.5313" size="0.8128" layer="25" ratio="10"/>
 <attribute name="VALUE" x="91.44" y="35.56" size="1.27" layer="27" rot="R90"/>
 </element>
 <element name="C7" library="deto" package="0805F" value="100nF" x="86.6775" y="6.0325" smashed="yes" rot="R180">
@@ -2716,20 +2716,20 @@ design rules under a new name.</description>
 <attribute name="VALUE" x="70.1675" y="53.0225" size="0.8128" layer="27"/>
 </element>
 <element name="R34" library="rcl" package="M0805" value="1k" x="83.82" y="36.83" smashed="yes">
-<attribute name="NAME" x="82.55" y="38.1" size="0.8128" layer="25"/>
-<attribute name="VALUE" x="82.55" y="34.29" size="0.8128" layer="27"/>
+<attribute name="NAME" x="84.7725" y="38.4175" size="0.8128" layer="25" rot="R180"/>
+<attribute name="VALUE" x="80.9625" y="36.5125" size="0.8128" layer="27"/>
 </element>
 <element name="R36" library="rcl" package="M0805" value="1k" x="83.82" y="39.37" smashed="yes">
-<attribute name="NAME" x="82.55" y="40.64" size="0.8128" layer="25"/>
-<attribute name="VALUE" x="82.55" y="36.83" size="0.8128" layer="27"/>
+<attribute name="NAME" x="84.7725" y="40.9575" size="0.8128" layer="25" rot="R180"/>
+<attribute name="VALUE" x="80.9625" y="39.0525" size="0.8128" layer="27"/>
 </element>
 <element name="R37" library="rcl" package="M0805" value="1k" x="83.82" y="41.91" smashed="yes">
-<attribute name="NAME" x="82.55" y="43.18" size="0.8128" layer="25"/>
-<attribute name="VALUE" x="82.55" y="39.37" size="0.8128" layer="27"/>
+<attribute name="NAME" x="84.7725" y="43.4975" size="0.8128" layer="25" rot="R180"/>
+<attribute name="VALUE" x="80.9625" y="41.5925" size="0.8128" layer="27"/>
 </element>
 <element name="R38" library="rcl" package="M0805" value="1k" x="83.82" y="44.45" smashed="yes">
-<attribute name="NAME" x="82.55" y="45.72" size="0.8128" layer="25"/>
-<attribute name="VALUE" x="82.55" y="41.91" size="0.8128" layer="27"/>
+<attribute name="NAME" x="84.7725" y="46.0375" size="0.8128" layer="25" rot="R180"/>
+<attribute name="VALUE" x="80.9625" y="44.1325" size="0.8128" layer="27"/>
 </element>
 <element name="R40" library="rcl" package="M0805" value="1k" x="93.98" y="35.56" smashed="yes" rot="MR180">
 <attribute name="NAME" x="92.71" y="34.29" size="0.8128" layer="26" rot="MR180"/>
@@ -3837,22 +3837,22 @@ design rules under a new name.</description>
 <signal name="N$45">
 <contactref element="R38" pad="2"/>
 <contactref element="JP6" pad="4"/>
-<wire x1="84.77" y1="44.45" x2="88.265" y2="44.45" width="0" layer="19" extent="1-1"/>
+<wire x1="84.77" y1="44.45" x2="88.265" y2="44.45" width="0.4064" layer="1"/>
 </signal>
 <signal name="N$54">
 <contactref element="R37" pad="2"/>
 <contactref element="JP6" pad="3"/>
-<wire x1="84.77" y1="41.91" x2="88.265" y2="41.91" width="0" layer="19" extent="1-1"/>
+<wire x1="84.77" y1="41.91" x2="88.265" y2="41.91" width="0.4064" layer="1"/>
 </signal>
 <signal name="N$56">
 <contactref element="R36" pad="2"/>
 <contactref element="JP6" pad="2"/>
-<wire x1="84.77" y1="39.37" x2="88.265" y2="39.37" width="0" layer="19" extent="1-1"/>
+<wire x1="84.77" y1="39.37" x2="88.265" y2="39.37" width="0.4064" layer="1"/>
 </signal>
 <signal name="N$57">
 <contactref element="R34" pad="2"/>
 <contactref element="JP6" pad="1"/>
-<wire x1="84.77" y1="36.83" x2="88.265" y2="36.83" width="0" layer="19" extent="1-1"/>
+<wire x1="84.77" y1="36.83" x2="88.265" y2="36.83" width="0.4064" layer="1"/>
 </signal>
 <signal name="N$20">
 <contactref element="IC1" pad="53"/>

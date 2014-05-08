@@ -64,12 +64,12 @@ Timer_Over
     lda     TPM1C4SC
     mov     #%01010000,TPM1C4SC   ;Flag löschen
   
-    lda     TPM1C4VL              ; Nächster Interrupt in weiteren 78 Clicks
-    add     #$57                  ; Also wieder $004E x 203,451 nsec
+    lda     TPM1C4VL              ; Nächster Interrupt in weiteren $57 Clicks
+    add     #$14                  ; Also wieder $57 x 203,451 nsec
     sta     TPM1C5VL	
 
     lda     TPM1C5VH
-    add     #$00		 
+    add     #$01		 
     sta     TPM1C5VH
     
     lda     RFID_Flag
@@ -79,18 +79,18 @@ Timer_Over
     ldhx    Counter
     aix     #1T
     sthx    Counter
-    cphx    #2000T
+    cphx    #1000T
     bhs     Timer_Off2
      
     lda     #CommIrqReg
     sta     Adresse
-    jsr     Read_RFID
+    ;jsr     Read_RFID
     lda     Daten
     sta     Status
     
     brset   5,Status,Timer_Off1        ;Check Rx_IRQ
     brset   4,Status,Timer_Off1        ;Check Idle_IRQ 
-    brset   0,Status,Timer_Off2        ;Check Timer_IRQ
+    ;brset   0,Status,Timer_Off2        ;Check Timer_IRQ
     
     bra     Ende_Timer
     
@@ -101,12 +101,13 @@ Timer_Off1
     bra     Ende_Timer
 
 Timer_Off2
-      
+    
+    lda     #0T
+    sta     Counter  
     lda     #$04
     sta     RFID_Flag
-    bra     Ende_Timer    
-   
-
+    bra     Ende_Timer
+    
 Ende_Timer
 
     pulh

@@ -10429,13 +10429,13 @@ general purpose rectifier, 1 A</description>
 <part name="R89" library="pot" deviceset="S63X" device="" value="10k"/>
 <part name="IC02" library="deto" deviceset="LM1117" device="TO220" value="LM1117-5.0"/>
 <part name="U$4" library="deto" deviceset="GND" device=""/>
-<part name="C8" library="deto" deviceset="C" device="1" value="1µF"/>
+<part name="C8" library="deto" deviceset="C" device="1" value="100n"/>
 <part name="U$7" library="deto" deviceset="GND" device=""/>
 <part name="U$8" library="deto" deviceset="GND" device=""/>
-<part name="C9" library="deto" deviceset="C" device="1" value="1µF"/>
+<part name="C9" library="deto" deviceset="C" device="1" value="100n"/>
 <part name="U$10" library="deto" deviceset="+5V" device=""/>
 <part name="U$11" library="deto" deviceset="GND" device=""/>
-<part name="D4" library="deto" deviceset="DHC" device="MELF" value="1N4007"/>
+<part name="D4" library="deto" deviceset="DHC" device="" value="1N4007"/>
 <part name="T10" library="deto" deviceset="TASTER" device="THT"/>
 <part name="T11" library="deto" deviceset="TASTER" device="THT"/>
 <part name="T12" library="deto" deviceset="TASTER" device="THT"/>
@@ -10452,7 +10452,7 @@ general purpose rectifier, 1 A</description>
 <part name="R14" library="rcl" deviceset="R-EU_" device="M0805" value="10k"/>
 <part name="R15" library="rcl" deviceset="R-EU_" device="M0805" value="10k"/>
 <part name="R16" library="rcl" deviceset="R-EU_" device="M0805" value="10k"/>
-<part name="R17" library="rcl" deviceset="R-EU_" device="M0805"/>
+<part name="R17" library="rcl" deviceset="R-EU_" device="M0805" value="10k"/>
 <part name="R18" library="rcl" deviceset="R-EU_" device="M0805" value="10k"/>
 <part name="R19" library="rcl" deviceset="R-EU_" device="M0805" value="10k"/>
 <part name="R20" library="rcl" deviceset="R-EU_" device="M0805" value="10k"/>
@@ -10472,12 +10472,12 @@ general purpose rectifier, 1 A</description>
 <part name="U$2" library="deto" deviceset="GND" device=""/>
 <part name="+3V1" library="supply1" deviceset="+3V3" device=""/>
 <part name="JP2" library="pinhead" deviceset="PINHD-1X2" device=""/>
-<part name="C6" library="deto" deviceset="C" device="1" value="1µF"/>
+<part name="C6" library="deto" deviceset="C" device="1" value="100n"/>
 <part name="U$12" library="deto" deviceset="GND" device=""/>
 <part name="R31" library="rcl" deviceset="R-EU_" device="R0805" value="1k"/>
 <part name="R32" library="rcl" deviceset="R-EU_" device="R0805" value="1k"/>
 <part name="LED1" library="led" deviceset="LED" device="3MM"/>
-<part name="LED2" library="led" deviceset="LED" device="3MM"/>
+<part name="LED2" library="led" deviceset="LED" device="B156"/>
 <part name="U$13" library="deto" deviceset="GND" device=""/>
 <part name="JP3" library="pinhead" deviceset="PINHD-1X3" device=""/>
 <part name="U$14" library="deto" deviceset="GND" device=""/>
@@ -10493,7 +10493,7 @@ general purpose rectifier, 1 A</description>
 <part name="JP6" library="pinhead" deviceset="PINHD-1X4" device=""/>
 <part name="C7" library="deto" deviceset="C" device="1" value="100nF"/>
 <part name="D1" library="diode" deviceset="1N4004" device=""/>
-<part name="R33" library="rcl" deviceset="R-EU_" device="M0805" value="1k"/>
+<part name="R33" library="rcl" deviceset="R-EU_" device="0207/10" value="1k"/>
 <part name="R35" library="rcl" deviceset="R-EU_" device="M0805" value="1k"/>
 <part name="R34" library="rcl" deviceset="R-EU_" device="M0805" value="1k"/>
 <part name="R36" library="rcl" deviceset="R-EU_" device="M0805" value="1k"/>
@@ -10918,6 +10918,10 @@ general purpose rectifier, 1 A</description>
 <junction x="259.08" y="81.28"/>
 <junction x="259.08" y="88.9"/>
 <junction x="259.08" y="96.52"/>
+<pinref part="T14" gate="G$1" pin="A1"/>
+<wire x1="254" y1="58.42" x2="259.08" y2="58.42" width="0.1524" layer="91"/>
+<wire x1="259.08" y1="58.42" x2="259.08" y2="66.04" width="0.1524" layer="91"/>
+<junction x="259.08" y="66.04"/>
 </segment>
 <segment>
 <wire x1="55.88" y1="157.48" x2="58.42" y2="157.48" width="0.1524" layer="91"/>
@@ -11215,7 +11219,7 @@ general purpose rectifier, 1 A</description>
 <pinref part="R11" gate="G$1" pin="2"/>
 <pinref part="R12" gate="G$1" pin="2"/>
 <wire x1="182.88" y1="137.16" x2="180.34" y2="137.16" width="0.1524" layer="91"/>
-<wire x1="182.88" y1="134.62" x2="182.88" y2="137.16" width="0.1524" layer="91"/>
+<wire x1="182.88" y1="137.16" x2="182.88" y2="134.62" width="0.1524" layer="91"/>
 <junction x="182.88" y="137.16"/>
 </segment>
 </net>
