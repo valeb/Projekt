@@ -31,12 +31,8 @@ Main_Init
 ;**************| Eigene Inits |******************************************************************              
                 
                 jsr     Init_Menue
-                
                 jsr     Init_Alarmton
-                jsr     Init_Alarmtimer
-                
-                bset    3,PORTE
-                
+                jsr     Init_Alarmtimer                
                 jsr     Init_LCD                ; [LCD_Disp_8Bit.inc] Initialisiert das LCD
                 jsr     Init_SPI
                               

@@ -51,6 +51,9 @@ Init_RFID
     lda     #$8D
     sta     Daten
     jsr     Write_RFID
+    lda     #TModeReg
+    sta     Adresse
+    jsr     Read_RFID    
     
     lda     #TPrescalerReg
     sta     Adresse
@@ -90,6 +93,12 @@ Init_RFID
     ORA     #%0000011
     sta     Daten
     jsr     Write_RFID
+    
+    lda     #TxControlReg
+    sta     Adresse
+    jsr     Read_RFID
+    lda     Daten
+    
 
     rts        
 

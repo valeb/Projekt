@@ -87,7 +87,7 @@ ZU_StartText2
           ldhx    #0T
           sthx    Schritte_Counter
           
-          ;jsr     Init_RFID
+          jsr     Init_RFID
           
           rts
                    

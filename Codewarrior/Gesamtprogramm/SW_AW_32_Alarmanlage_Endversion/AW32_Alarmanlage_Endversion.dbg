@@ -1,0 +1,3224 @@
+;************************************************************************************************
+;*      AW32-Alarmanlage Endversion                                                             *
+;*                                                                                              *
+;*      Revision vom 13. Dezember 2013                                                          *
+;*                                                                                              *
+;*      Name: Valentin Bernard                                                                  *
+;*      Klasse: 5ael                                                                            *
+;*      Version: 1.0                                                                            *
+;*                                                                                              *
+;*      Programmiert auf einem Target mit 4,9152 MHz                                            *
+;*      Interner Busclock mit FLL auf 19,6608 MHz hinaufgetaktet                                *
+;*      Realtime zu exakt 10 msec                                                               *
+;*                                                                                              *
+;************************************************************************************************
+
+
+		XDEF Main_Loop
+                ABSENTRY Main_Init
+
+;************************************************************************************************
+;*      Speicherdefinitionen                                                                    *
+;*                                                                                              *
+;************************************************************************************************
+
+
+ROM_START       EQU     $00008000
+ROM_END         EQU     $0000FFAF
+Z_RAM_START     EQU     $00000070
+Z_RAM_END       EQU     $000000FF
+E_RAM_START     EQU     $00000100
+E_RAM_END       EQU     $0000086F
+VECTOR_START    EQU     $0000FFCC
+
+
+                INCLUDE 'AW32regs.inc'          ; Register
+PTAD:               equ    $00000000                                    
+PORTA:              equ    $00000000                                ;*** PTAD - Port A Data Register; 0x00000000 ***
+PTADD:              equ    $00000001                                ;*** PTADD - Data Direction Register A; 0x00000001 ***
+PTBD:               equ    $00000002                                ;*** PTBD - Port B Data Register; 0x00000002 ***
+PORTB:              equ    $00000002
+PTBDD:              equ    $00000003                                ;*** PTBDD - Data Direction Register B; 0x00000003 ***
+PTCD:               equ    $00000004                                ;*** PTCD - Port C Data Register; 0x00000004 ***
+PORTC               equ    $00000004
+PTCDD:              equ    $00000005                                ;*** PTCDD - Data Direction Register C; 0x00000005 ***
+PTDD:               equ    $00000006                                ;*** PTDD - Port D Data Register; 0x00000006 ***
+PORTD:              equ    $00000006
+PTDDD:              equ    $00000007                                ;*** PTDDD - Data Direction Register D; 0x00000007 ***
+PTED:               equ    $00000008        
+PORTE:              equ    $00000008                                ;*** PTED - Port E Data Register; 0x00000008 ***
+PTEDD:              equ    $00000009                                ;*** PTEDD - Data Direction Register E; 0x00000009 ***
+PTFD:               equ    $0000000A                                ;*** PTFD - Port F Data Register; 0x0000000A ***
+PORTF:              equ    $0000000A                                ;*** PTFD - Port F Data Register; 0x0000000A ***
+PTFDD:              equ    $0000000B                                ;*** PTFDD - Data Direction Register F; 0x0000000B ***
+PTGD:               equ    $0000000C                                ;*** PTGD - Port G Data Register; 0x0000000C ***
+PORTG:              equ    $0000000C                                ;*** PTFD - Port F Data Register; 0x0000000A ***
+PTGDD:              equ    $0000000D                                ;*** PTGDD - Data Direction Register G; 0x0000000D ***
+ADC1SC1:            equ    $00000010                                ;*** ADC1SC1 - Status and Control Register; 0x00000010 ***
+ADC1SC2:            equ    $00000011                                ;*** ADC1SC2 - Status and Control Register 2; 0x00000011 ***
+ADC1R:              equ    $00000012                                ;*** ADC1R - ADC10 Result Data Right Justified; 0x00000012 ***
+ADC1RH:             equ    $00000012                                ;*** ADC1RH - ADC10 Result Data Right Justified High; 0x00000012 ***
+ADC1RL:             equ    $00000013                                ;*** ADC1RL - ADC10 Result Data Right Justified Low; 0x00000013 ***
+ADC1CV:             equ    $00000014                                ;*** ADC1CV - Compare Value Register; 0x00000014 ***
+ADC1CVH:            equ    $00000014                                ;*** ADC1CVH - Compare Value Register High; 0x00000014 ***
+ADC1CVL:            equ    $00000015                                ;*** ADC1CVL - Compare Value Register Low; 0x00000015 ***
+ADC1CFG:            equ    $00000016                                ;*** ADC1CFG - Configuration Register; 0x00000016 ***
+APCTL1:             equ    $00000017                                ;*** APCTL1 - ADC10 Pin Control 1 Register; 0x00000017 ***
+APCTL2:             equ    $00000018                                ;*** APCTL2 - ADC10 Pin Control 2 Register; 0x00000018 ***
+APCTL3:             equ    $00000019                                ;*** APCTL3 - ADC10 Pin Control 3 Register; 0x00000019 ***
+IRQSC:              equ    $0000001C                                ;*** IRQSC - Interrupt Request Status and Control Register; 0x0000001C ***
+KBISC:              equ    $0000001E                                ;*** KBISC - KBI1 Status and Control; 0x0000001E ***
+KBIPE:              equ    $0000001F                                ;*** KBIPE - KBI1 Pin Enable Register; 0x0000001F ***
+TPM1SC:             equ    $00000020                                ;*** TPM1SC - TPM 1 Status and Control Register; 0x00000020 ***
+TPM1CNT:            equ    $00000021                                ;*** TPM1CNT - TPM 1 Counter Register; 0x00000021 ***
+TPM1CNTH:           equ    $00000021                                ;*** TPM1CNTH - TPM 1 Counter Register High; 0x00000021 ***
+TPM1CNTL:           equ    $00000022                                ;*** TPM1CNTL - TPM 1 Counter Register Low; 0x00000022 ***
+TPM1MOD:            equ    $00000023                                ;*** TPM1MOD - TPM 1 Timer Counter Modulo Register; 0x00000023 ***
+TPM1MODH:           equ    $00000023                                ;*** TPM1MODH - TPM 1 Timer Counter Modulo Register High; 0x00000023 ***
+TPM1MODL:           equ    $00000024                                ;*** TPM1MODL - TPM 1 Timer Counter Modulo Register Low; 0x00000024 ***
+TPM1C0SC:           equ    $00000025                                ;*** TPM1C0SC - TPM 1 Timer Channel 0 Status and Control Register; 0x00000025 ***
+TPM1C0V:            equ    $00000026                                ;*** TPM1C0V - TPM 1 Timer Channel 0 Value Register; 0x00000026 ***
+TPM1C0VH:           equ    $00000026                                ;*** TPM1C0VH - TPM 1 Timer Channel 0 Value Register High; 0x00000026 ***
+TPM1C0VL:           equ    $00000027                                ;*** TPM1C0VL - TPM 1 Timer Channel 0 Value Register Low; 0x00000027 ***
+TPM1C1SC:           equ    $00000028                                ;*** TPM1C1SC - TPM 1 Timer Channel 1 Status and Control Register; 0x00000028 ***
+TPM1C1V:            equ    $00000029                                ;*** TPM1C1V - TPM 1 Timer Channel 1 Value Register; 0x00000029 ***
+TPM1C1VH:           equ    $00000029                                ;*** TPM1C1VH - TPM 1 Timer Channel 1 Value Register High; 0x00000029 ***
+TPM1C1VL:           equ    $0000002A                                ;*** TPM1C1VL - TPM 1 Timer Channel 1 Value Register Low; 0x0000002A ***
+TPM1C2SC:           equ    $0000002B                                ;*** TPM1C2SC - TPM 1 Timer Channel 2 Status and Control Register; 0x0000002B ***
+TPM1C2V:            equ    $0000002C                                ;*** TPM1C2V - TPM 1 Timer Channel 2 Value Register; 0x0000002C ***
+TPM1C2VH:           equ    $0000002C                                ;*** TPM1C2VH - TPM 1 Timer Channel 2 Value Register High; 0x0000002C ***
+TPM1C2VL:           equ    $0000002D                                ;*** TPM1C2VL - TPM 1 Timer Channel 2 Value Register Low; 0x0000002D ***
+TPM1C3SC:           equ    $0000002E                                ;*** TPM1C3SC - TPM 1 Timer Channel 3 Status and Control Register; 0x0000002E ***
+TPM1C3V:            equ    $0000002F                                ;*** TPM1C3V - TPM 1 Timer Channel 3 Value Register; 0x0000002F ***
+TPM1C3VH:           equ    $0000002F                                ;*** TPM1C3VH - TPM 1 Timer Channel 3 Value Register High; 0x0000002F ***
+TPM1C3VL:           equ    $00000030                                ;*** TPM1C3VL - TPM 1 Timer Channel 3 Value Register Low; 0x00000030 ***
+TPM1C4SC:           equ    $00000031                                ;*** TPM1C4SC - TPM 1 Timer Channel 4 Status and Control Register; 0x00000031 ***
+TPM1C4V:            equ    $00000032                                ;*** TPM1C4V - TPM 1 Timer Channel 4 Value Register; 0x00000032 ***
+TPM1C4VH:           equ    $00000032                                ;*** TPM1C4VH - TPM 1 Timer Channel 4 Value Register High; 0x00000032 ***
+TPM1C4VL:           equ    $00000033                                ;*** TPM1C4VL - TPM 1 Timer Channel 4 Value Register Low; 0x00000033 ***
+TPM1C5SC:           equ    $00000034                                ;*** TPM1C5SC - TPM 1 Timer Channel 5 Status and Control Register; 0x00000034 ***
+TPM1C5V:            equ    $00000035                                ;*** TPM1C5V - TPM 1 Timer Channel 5 Value Register; 0x00000035 ***
+TPM1C5VH:           equ    $00000035                                ;*** TPM1C5VH - TPM 1 Timer Channel 5 Value Register High; 0x00000035 ***
+TPM1C5VL:           equ    $00000036                                ;*** TPM1C5VL - TPM 1 Timer Channel 5 Value Register Low; 0x00000036 ***
+SCI1BD:             equ    $00000038                                ;*** SCI1BD - SCI1 Baud Rate Register; 0x00000038 ***
+SCI1BDH:            equ    $00000038                                ;*** SCI1BDH - SCI1 Baud Rate Register High; 0x00000038 ***
+SCI1BDL:            equ    $00000039                                ;*** SCI1BDL - SCI1 Baud Rate Register Low; 0x00000039 ***
+SCI1C1:             equ    $0000003A                                ;*** SCI1C1 - SCI1 Control Register 1; 0x0000003A ***
+SCI1C2:             equ    $0000003B                                ;*** SCI1C2 - SCI1 Control Register 2; 0x0000003B ***
+SCI1S1:             equ    $0000003C                                ;*** SCI1S1 - SCI1 Status Register 1; 0x0000003C ***
+SCI1S2:             equ    $0000003D                                ;*** SCI1S2 - SCI1 Status Register 2; 0x0000003D ***
+SCI1D:              equ    $0000003F                                ;*** SCI1D - SCI1 Data Register; 0x0000003F ***
+SCI2BD:             equ    $00000040                                ;*** SCI2BD - SCI2 Baud Rate Register; 0x00000040 ***
+SCI2BDH:            equ    $00000040                                ;*** SCI2BDH - SCI2 Baud Rate Register High; 0x00000040 ***
+SCI2BDL:            equ    $00000041                                ;*** SCI2BDL - SCI2 Baud Rate Register Low; 0x00000041 ***
+SCI2C1:             equ    $00000042                                ;*** SCI2C1 - SCI1 Control Register 1; 0x00000042 ***
+SCI2C2:             equ    $00000043                                ;*** SCI2C2 - SCI2 Control Register 2; 0x00000043 ***
+SCI2S1:             equ    $00000044                                ;*** SCI2S1 - SCI2 Status Register 1; 0x00000044 ***
+SCI2S2:             equ    $00000045                                ;*** SCI2S2 - SCI2 Status Register 2; 0x00000045 ***
+SCI2C3:             equ    $00000046                                ;*** SCI2C3 - SCI2 Control Register 3; 0x00000046 ***
+SCI2D:              equ    $00000047                                ;*** SCI2D - SCI2 Data Register; 0x00000047 ***
+ICGC1:              equ    $00000048                                ;*** ICGC1 - ICG Control Register 1; 0x00000048 ***
+ICGC2:              equ    $00000049                                ;*** ICGC2 - ICG Control Register 2; 0x00000049 ***
+ICGS1:              equ    $0000004A                                ;*** ICGS1 - ICG Status Register 1; 0x0000004A ***
+ICGS2:              equ    $0000004B                                ;*** ICGS2 - ICG Status Register 2; 0x0000004B ***
+ICGFLT:             equ    $0000004C                                ;*** ICGFLT - ICG Upper Filter; 0x0000004C ***
+ICGFLTU:            equ    $0000004C                                ;*** ICGFLTU - ICG Upper Filter Register; 0x0000004C ***
+ICGFLTL:            equ    $0000004D                                ;*** ICGFLTL - ICG Lower Filter Register; 0x0000004D ***
+ICGTRM:             equ    $0000004E                                ;*** ICGTRM - ICG Trim Register; 0x0000004E ***
+SPI1C1:             equ    $00000050                                ;*** SPI1C1 - SPI1 Control Register 1; 0x00000050 ***
+SPI1C2:             equ    $00000051                                ;*** SPI1C2 - SPI1 Control Register 2; 0x00000051 ***
+SPI1BR:             equ    $00000052                                ;*** SPI1BR - SPI1 Baud Rate Register; 0x00000052 ***
+SPI1S:              equ    $00000053                                ;*** SPI1S - SPI1 Status Register; 0x00000053 ***
+SPI1D:              equ    $00000055                                ;*** SPI1D - SPI1 Daten Register; 0x00000055 ***
+IIC1A:              equ    $00000058                                ;*** IIC1A - IIC1 Address Register; 0x00000058 ***
+IIC1F:              equ    $00000059                                ;*** IIC1F - IIC1 Frequency Divider Register; 0x00000059 ***
+IIC1C:              equ    $0000005A                                ;*** IIC1C - IIC1 Control Register; 0x0000005A ***
+IIC1S:              equ    $0000005B                                ;*** IIC1S - IIC1 Status Register; 0x0000005B ***
+IIC1D:              equ    $0000005C                                ;*** IIC1D - IIC1 Data I/O Register; 0x0000005C ***
+TPM2SC:             equ    $00000060                                ;*** TPM2SC - TPM 2 Status and Control Register; 0x00000060 ***
+TPM2CNT:            equ    $00000061                                ;*** TPM2CNT - TPM 2 Counter Register; 0x00000061 ***
+TPM2CNTH:           equ    $00000061                                ;*** TPM2CNTH - TPM 2 Counter Register High; 0x00000061 ***
+TPM2CNTL:           equ    $00000062                                ;*** TPM2CNTL - TPM 2 Counter Register Low; 0x00000062 ***
+TPM2MOD:            equ    $00000063                                ;*** TPM2MOD - TPM 2 Timer Counter Modulo Register; 0x00000063 ***
+TPM2MODH:           equ    $00000063                                ;*** TPM2MODH - TPM 2 Timer Counter Modulo Register High; 0x00000063 ***
+TPM2MODL:           equ    $00000064                                ;*** TPM2MODL - TPM 2 Timer Counter Modulo Register Low; 0x00000064 ***
+TPM2C0SC:           equ    $00000065                                ;*** TPM2C0SC - TPM 2 Timer Channel 0 Status and Control Register; 0x00000065 ***
+TPM2C0V:            equ    $00000066                                ;*** TPM2C0V - TPM 2 Timer Channel 0 Value Register; 0x00000066 ***
+TPM2C0VH:           equ    $00000066                                ;*** TPM2C0VH - TPM 2 Timer Channel 0 Value Register High; 0x00000066 ***
+TPM2C0VL:           equ    $00000067                                ;*** TPM2C0VL - TPM 2 Timer Channel 0 Value Register Low; 0x00000067 ***
+TPM2C1SC:           equ    $00000068                                ;*** TPM2C1SC - TPM 2 Timer Channel 1 Status and Control Register; 0x00000068 ***
+TPM2C1V:            equ    $00000069                                ;*** TPM2C1V - TPM 2 Timer Channel 1 Value Register; 0x00000069 ***
+TPM2C1VH:           equ    $00000069                                ;*** TPM2C1VH - TPM 2 Timer Channel 1 Value Register High; 0x00000069 ***
+TPM2C1VL:           equ    $0000006A                                ;*** TPM2C1VL - TPM 2 Timer Channel 1 Value Register Low; 0x0000006A ***
+SRS:                equ    $00001800                                ;*** SRS - System Reset Status; 0x00001800 ***
+SBDFR:              equ    $00001801                                ;*** SBDFR - System Background Debug Force Reset Register; 0x00001801 ***
+mSBDFR_BDFR:        equ    %00000001
+SOPT:               equ    $00001802                                ;*** SOPT - System Options Register; 0x00001802 ***
+SMCLK:              equ    $00001803                                ;*** SMCLK - System MCLK Control Register; 0x00001803 ***
+SDID:               equ    $00001806                                ;*** SDID - System Integration Module Part ID Register; 0x00001806 ***
+SDIDH:              equ    $00001806                                ;*** SDIDH - System Integration Module Part ID Register High; 0x00001806 ***
+SDIDL:              equ    $00001807                                ;*** SDIDL - System Integration Module Part ID Register Low; 0x00001807 ***
+SRTISC:             equ    $00001808                                ;*** SRTISC - System RTI Status and Control Register; 0x00001808 ***
+SPMSC1:             equ    $00001809                                ;*** SPMSC1 - PM Status and Control 1 Register; 0x00001809 ***
+SPMSC2:             equ    $0000180A                                ;*** SPMSC2 - PM Status and Control 2 Register; 0x0000180A ***
+DBGCAH:             equ    $00001810                                ;*** DBGCAH - Debug Comparator A High Register; 0x00001810 ***
+DBGCAL:             equ    $00001811                                ;*** DBGCAL - Debug Comparator A Low Register; 0x00001811 ***
+DBGCBH:             equ    $00001812                                ;*** DBGCBH - Debug Comparator B High Register; 0x00001812 ***
+DBGCBL:             equ    $00001813                                ;*** DBGCBL - Debug Comparator B Low Register; 0x00001813 ***
+DBGFH:              equ    $00001814                                ;*** DBGFH - Debug FIFO High Register; 0x00001814 ***
+DBGFL:              equ    $00001815                                ;*** DBGFL - Debug FIFO Low Register; 0x00001815 ***
+DBGC:               equ    $00001816                                ;*** DBGC - Debug Control Register; 0x00001816 ***
+DBGT:               equ    $00001817                                ;*** DBGT - Debug Trigger Register; 0x00001817 ***
+DBGS:               equ    $00001818                                ;*** DBGS - Debug Status Register; 0x00001818 ***
+FCDIV:              equ    $00001820                                ;*** FCDIV - FLASH Clock Divider Register; 0x00001820 ***
+FOPT:               equ    $00001821                                ;*** FOPT - FLASH Options Register; 0x00001821 ***
+FCNFG:              equ    $00001823                                ;*** FCNFG - FLASH Configuration Register; 0x00001823 ***
+FPROT:              equ    $00001824                                ;*** FPROT - FLASH Protection Register; 0x00001824 ***
+FSTAT:              equ    $00001825                                ;*** FSTAT - FLASH Status Register; 0x00001825 ***
+FCMD:               equ    $00001826                                ;*** FCMD - FLASH Command Register; 0x00001826 ***
+PTAPE:              equ    $00001840                                ;*** PTAPE - Pullup Enable for Port A; 0x00001840 ***
+PTASE:              equ    $00001841                                ;*** PTASE - Slew Rate Control Enable for Port A; 0x00001841 ***
+PTADS:              equ    $00001842                                ;*** PTADS - Output Drive Strength Selection for Port A; 0x00001842 ***
+PTBPE:              equ    $00001844                                ;*** PTBPE - Pullup Enable for Port B; 0x00001844 ***
+PTBSE:              equ    $00001845                                ;*** PTBSE - Slew Rate Control Enable for Port B; 0x00001845 ***
+PTBDS:              equ    $00001846                                ;*** PTBDS - Output Drive Strength Selection for Port B; 0x00001846 ***
+PTCPE:              equ    $00001848                                ;*** PTCPE - Pullup Enable for Port C; 0x00001848 ***
+PTCSE:              equ    $00001849                                ;*** PTCSE - Slew Rate Control Enable for Port C; 0x00001849 ***
+PTCDS:              equ    $0000184A                                ;*** PTCDS - Output Drive Strength Selection for Port C; 0x0000184A ***
+PTDPE:              equ    $0000184C                                ;*** PTDPE - Pullup Enable for Port D; 0x0000184C ***
+PTDSE:              equ    $0000184D                                ;*** PTDSE - Slew Rate Control Enable for Port D; 0x0000184D ***
+PTDDS:              equ    $0000184E                                ;*** PTDDS - Output Drive Strength Selection for Port D; 0x0000184E ***
+PTEPE:              equ    $00001850                                ;*** PTEPE - Pullup Enable for Port E; 0x00001850 ***
+PTESE:              equ    $00001851                                ;*** PTESE - Slew Rate Control Enable for Port E; 0x00001851 ***
+PTEDS:              equ    $00001852                                ;*** PTEDS - Output Drive Strength Selection for Port E; 0x00001852 ***
+PTFPE:              equ    $00001854                                ;*** PTFPE - Pullup Enable for Port F; 0x00001854 ***
+PTFSE:              equ    $00001855                                ;*** PTFSE - Slew Rate Control Enable for Port F; 0x00001855 ***
+PTFDS:              equ    $00001856                                ;*** PTFDS - Output Drive Strength Selection for Port F; 0x00001856 ***
+PTGPE:              equ    $00001858                                ;*** PTGPE - Pullup Enable for Port G; 0x00001858 ***
+PTGSE:              equ    $00001859                                ;*** PTGSE - Slew Rate Control Enable for Port G; 0x00001859 ***
+PTGDS:              equ    $0000185A                                ;*** PTGDS - Output Drive Strength Selection for Port G; 0x0000185A ***
+NVBACKKEY0:         equ    $0000FFB0                                ;*** NVBACKKEY0 - Backdoor Comparison Key 0; 0x0000FFB0 ***
+NVBACKKEY1:         equ    $0000FFB1                                ;*** NVBACKKEY1 - Backdoor Comparison Key 1; 0x0000FFB1 ***
+NVBACKKEY2:         equ    $0000FFB2                                ;*** NVBACKKEY2 - Backdoor Comparison Key 2; 0x0000FFB2 ***
+NVBACKKEY3:         equ    $0000FFB3                                ;*** NVBACKKEY3 - Backdoor Comparison Key 3; 0x0000FFB3 ***
+NVBACKKEY4:         equ    $0000FFB4                                ;*** NVBACKKEY4 - Backdoor Comparison Key 4; 0x0000FFB4 ***
+NVBACKKEY5:         equ    $0000FFB5                                ;*** NVBACKKEY5 - Backdoor Comparison Key 5; 0x0000FFB5 ***
+NVBACKKEY6:         equ    $0000FFB6                                ;*** NVBACKKEY6 - Backdoor Comparison Key 6; 0x0000FFB6 ***
+NVBACKKEY7:         equ    $0000FFB7                                ;*** NVBACKKEY7 - Backdoor Comparison Key 7; 0x0000FFB7 ***
+NVPROT:             equ    $0000FFBD                                ;*** NVPROT - Nonvolatile FLASH Protection Register; 0x0000FFBD ***
+NVOPT:              equ    $0000FFBF                                ;*** NVOPT - Nonvolatile FLASH Options Register; 0x0000FFBF ***
+
+                INCLUDE 'MFRC522regs.inc'    
+;************************************************************************************************
+;*                                                                                              *
+;*      Hier werden den Registern und Befehlen des MC522 Namen zugewiesen                       *
+;*                                                                                              *
+;************************************************************************************************
+
+;MF522 command bits
+PCD_IDLE              	EQU        $00               ;NO action; cancel current commands
+PCD_AUTHENT          	  EQU        $0E               ;verify password key
+PCD_RECEIVE           	EQU        $08               ;receive data
+PCD_TRANSMIT          	EQU        $04               ;send data
+PCD_TRANSCEIVE          EQU        $0C               ;send and receive data
+PCD_RESETPHASE          EQU        $0F               ;reset
+PCD_CALCCRC           	EQU        $03               ;CRC check and caculation
+
+;Mifare_One card command bits
+PICC_REQIDL           	EQU        $26               ;Search the cards that not into sleep mode in the antenna area 
+PICC_REQALL           	EQU        $52               ;Search all the cards in the antenna area
+PICC_ANTICOLL         	EQU        $93               ;prevent conflict
+PICC_SElECTTAG          EQU        $93               ;select card
+PICC_AUTHENT1A          EQU        $60               ;verify A password key
+PICC_AUTHENT1B          EQU        $61               ;verify B password key
+PICC_READ             	EQU        $30               ;read 
+PICC_WRITE            	EQU        $A0               ;write
+PICC_DECREMENT      	  EQU        $C0               ;deduct value
+PICC_INCREMENT      	  EQU        $C1               ;charge up value
+PICC_RESTORE          	EQU        $C2               ;Restore data into buffer
+PICC_TRANSFER        	  EQU        $B0               ;Save data into buffer
+PICC_HALT             	EQU        $50               ;sleep mode
+
+
+;THe mistake code that return when communicate with MF522
+MI_OK                 	EQU        $0
+MI_NOTAGERR           	EQU	   $1
+MI_ERR                	EQU	   $2
+
+
+;------------------MFRC522 register ---------------
+;Page 0:Command and Status
+Reserved00            	EQU        $00    
+CommandReg            	EQU        $01    
+CommIEnReg            	EQU        $02    
+DivlEnReg             	EQU        $03    
+CommIrqReg            	EQU        $04    
+DivIrqReg             	EQU        $05
+ErrorReg              	EQU        $06    
+Status1Reg            	EQU        $07    
+Status2Reg            	EQU        $08    
+FIFODataReg           	EQU        $09
+FIFOLevelReg          	EQU        $0A
+WaterLevelReg         	EQU        $0B
+ControlReg            	EQU        $0C
+BitFramingReg         	EQU        $0D
+CollReg               	EQU        $0E
+Reserved01            	EQU        $0F
+;Page 1:Command     
+Reserved10            	EQU        $10
+ModeReg               	EQU        $11
+TxModeReg             	EQU        $12
+RxModeReg             	EQU        $13
+TxControlReg          	EQU        $14
+TxAutoReg             	EQU        $15
+TxSelReg              	EQU        $16
+RxSelReg              	EQU        $17
+RxThresholdReg        	EQU        $18
+DemodReg              	EQU        $19
+Reserved11            	EQU        $1A
+Reserved12            	EQU        $1B
+MifareReg             	EQU        $1C
+Reserved13            	EQU        $1D
+Reserved14            	EQU        $1E
+SerialSpeedReg        	EQU        $1F
+;Page 2:CFG    
+Reserved20            	EQU        $20  
+CRCResultRegM         	EQU        $21
+CRCResultRegL         	EQU        $22
+Reserved21            	EQU        $23
+ModWidthReg           	EQU        $24
+Reserved22            	EQU        $25
+RFCfgReg              	EQU        $26
+GsNReg                	EQU        $27
+CWGsPReg	          	  EQU        $28
+ModGsPReg             	EQU        $29
+TModeReg              	EQU        $2A
+TPrescalerReg         	EQU        $2B
+TReloadRegH           	EQU        $2C
+TReloadRegL           	EQU        $2D
+TCounterValueRegH     	EQU        $2E
+TCounterValueRegL     	EQU        $2F
+;Page 3:TestRegister     
+Reserved30            	EQU        $30
+TestSel1Reg           	EQU        $31
+TestSel2Reg           	EQU        $32
+TestPinEnReg          	EQU        $33
+TestPinValueReg       	EQU        $34
+TestBusReg            	EQU        $35
+AutoTestReg           	EQU        $36
+VersionReg            	EQU        $37
+AnalogTestReg         	EQU        $38
+TestDAC1Reg           	EQU        $39  
+TestDAC2Reg           	EQU        $3A   
+TestADCReg            	EQU        $3B   
+Reserved31            	EQU        $3C   
+Reserved32            	EQU        $3D   
+Reserved33            	EQU        $3E   
+Reserved34		          EQU        $3F
+
+                
+                INCLUDE 'Variablen.inc'
+;************************************************************************************************
+;*                                                                                              *
+;*      Hier kommen meine Variablen rein... Zuerst die Zeropage                                 *
+;*                                                                                              *
+;************************************************************************************************
+
+                ORG     Z_RAM_START            
+
+
+TimerFlag         ds      1T
+RealTimeCounter   ds      1T
+
+Bewegung_Flag     ds      1T
+Bewegung_Counter  ds      2T
+
+RFID_Flag         ds      1T
+PW_Flag           ds      1T
+Alarm_Flag        ds      1T
+
+T0_Flag           ds      1T                                                                
+T1_Flag           ds      1T                                                                
+T2_Flag           ds      1T                                                                
+T3_Flag           ds      1T                                                                 
+T4_Flag           ds      1T                                                                
+T5_Flag           ds      1T                                                                
+T6_Flag           ds      1T                                                                 
+T7_Flag           ds      1T                                                                
+T8_Flag           ds      1T                                                                
+T9_Flag           ds      1T                                                                
+TOK_Flag          ds      1T                                                                
+TVOR_Flag         ds      1T                                                                 
+TZUR_Flag         ds      1T     
+                  
+
+;************************************************************************************************
+;*                                                                                              *
+;*      Und hier die sog. "Extend RAM", also der große Speicher                                 *
+;*                                                                                              *
+;************************************************************************************************
+
+                ORG     E_RAM_START
+
+Blink_Counter     ds      1T
+PW_Counter        ds      1T
+
+Counter           ds      1T                                                                
+Adresse           ds      1T                                                                
+Daten             ds      1T
+Status            ds      1T 
+
+
+Alarm_Timer       ds      2T
+Ton_Timer         ds      1T                                                           
+Ton_Select        ds      1T                                                             
+T_High            ds      1T                                                              
+T_Low             ds      1T                                                              
+Pointer_LOW       ds      2T                                                              
+Pointer_HIGH      ds      2T                                                              
+                
+Pointer_Schritte  ds      2T                                                           
+Schritte_Counter  ds      2T                            
+
+LCD_Pointer       ds      2T              ; Pointer auf die aktuelle LCD-Routine          
+LCD_Counter       ds      1T                                                             
+LCD_Oben          ds      16T             ; LCD erste Zeile, 16 Zeichen lang              
+LCD_Unten         ds      16T             ; LCD zweite Zeile, 16 Zeichen lang             
+DelayCounter      ds      1T              ; Grässlich - Delay für LCD...                  
+CopyCounter       ds      1T                                                             
+SourcePointer     ds      2T              ; Pointer für Copy-Routinen                     
+DestPointer       ds      2T              ; Ebenfalls für die Copy-Routinen              
+TextLenght        ds      1T                                                   
+
+
+TValue            ds      1T   
+T0_Counter        ds      1T                                                                 
+T1_Counter        ds      1T                                                                
+T2_Counter        ds      1T                                                                 
+T3_Counter        ds      1T                                                                 
+T4_Counter        ds      1T                                                                  
+T5_Counter        ds      1T                                                                
+T6_Counter        ds      1T                                                                
+T7_Counter        ds      1T                                                                 
+T8_Counter        ds      1T                                                                 
+T9_Counter        ds      1T                                                                 
+TOK_Counter       ds      1T                                                                 
+TVOR_Counter      ds      1T                                                              
+TZUR_Counter      ds      1T  
+
+
+PW_1              ds      1T
+PW_2              ds      1T 
+PW_3              ds      1T 
+PW_4              ds      1T 
+PW_5              ds      1T 
+PW_6              ds      1T 
+PW_7              ds      1T
+PW_8              ds      1T 
+PW_9              ds      1T 
+PW_10             ds      1T                                                                          
+
+
+
+
+;************************************************************************************************
+;*                                                                                              *
+;*      Main_Loop: Die Hauptschleife                                                            *
+;*      Sie wird exakt alle 10msec einmal durchlaufen!                                          *
+;*                                                                                              *
+;************************************************************************************************
+
+
+                ORG    ROM_START
+
+
+Main_Loop
+                sta     SRS                     ; Watchdog zurücksetzen
+                
+                lda     TimerFlag               ; TimerFlag = 0 --> Realtime noch nicht um
+                beq     Main_Loop               ; TimerFlag <>0 --> Realtime (5 msec) ist um!
+                clr     TimerFlag           
+                
+                ; Eigene Routinen
+                
+                jsr     Tastenroutine 
+                jsr     Menue
+                jsr     Update_LCD                              
+                             
+                bra     Main_Loop
+
+
+
+
+;************************************************************************************************
+;*                                                                                              *
+;*      Es folgen die verschiedensten Includes für die                                          *
+;*      SubRoutinen                                                                             *
+;*                                                                                              *
+;************************************************************************************************
+
+                INCLUDE 'Menue.inc'             ; Routine für das Menü 
+;************************************************************************************************
+;*      MENÜSTRUKTUR                                                                            *
+;*                                                                                              *
+;*      Revision vom 21. Oktober 2011                                                           *
+;*                                                                                              *
+;*      Name:   Valentin Bernard                                                                *
+;*      Klasse:   4AEL                                                                          *
+;*      Version:   1.0                                                                          *
+;*                                                                                              *
+;*      Programmiert auf einem Target mit 4,9152 MHz                                            *
+;*                                                                                              *
+;*      Variabeln:                                                                              *
+;*      Pointer_Schritte ds     2T                                                              *
+;*      Zurueck          ds     2T                                                              *
+;*      Schritte_Counter ds     2T                                                              *
+;*                                                                                              *
+;*      In Hauptloop kopieren:                                                                  *
+;*      jsr     Menue                                                                           *
+;*                                                                                              *
+;*      Variablen                                                                               *
+;*      Alarm_Timer      ds     2T                                                              *
+;*                                                                                              *
+;*      In Init kopieren:                                                                       *
+;*      jsr   Init_Menue                                                                        *
+;*                                                                                              *
+;*      In ASM kopieren                                                                         *
+;*      INCLUDE 'Menue.inc'             ; Routine für das Menü                                  *
+;************************************************************************************************
+
+LED_PORT      EQU     PORTD
+TASTER_PORT   EQU     PORTF
+
+ZEIT_START    EQU     100T
+
+
+;************************************************************************************************
+;*                           Initialisierung des Menüs                                          *
+;************************************************************************************************
+
+Init_Menue
+          ldhx  #StartText		            ;Speichere Adresse des ersten Schrittes in Pointer
+          sthx  Pointer_Schritte
+          rts
+
+;************************************************************************************************
+;*                               Programm für das Menü                                          *
+;************************************************************************************************
+
+Menue
+
+          ldhx    Pointer_Schritte        ; lade Adresse des aktuellen Schrittes in HX                      
+          jsr     0,x                     ; springe zu dieser Adresse 
+          
+          rts       
+
+;********| STARTTEXTE |**************************************************************************
+
+StartText
+          
+          ;Ausgabe_Text          
+          jsr     A_StartText
+        
+          
+          ;Austrittsbedingung         Zeitverzögerung 5 sec,
+          ldhx    Schritte_Counter
+          aix     #1T
+          sthx    Schritte_Counter
+          add     #50T          
+          cphx    #ZEIT_START
+          beq     ZU_StartText2
+          
+          rts
+          
+          
+ZU_StartText2
+          
+          ldhx    #StartText2
+          sthx    Pointer_Schritte
+          
+          jsr     Init_RFID
+          
+          ldhx    #0T
+          sthx    Schritte_Counter
+          
+          rts                         
+
+StartText2
+ 
+          ;Ausgabe_Text
+          jsr     A_StartText2  
+        
+          
+          ;Austrittsbedingung         Zeitverzögerung 5 sec,
+          ldhx    Schritte_Counter
+          aix     #1T
+          sthx    Schritte_Counter
+          
+          cphx    #ZEIT_START
+          beq     ZU_Inaktiv
+          
+          rts
+          
+;********| Deaktiviert |************************************************************************                                                                        
+
+Inaktiv
+          
+          ;jsr     Check-RFID
+          jsr     Blink_Gruen
+              
+          ;Ausgabe: "Alarm Inaktiv"
+          jsr     A_Inaktiv
+          
+          ;Aktieviertung 
+          lda     TOK_Flag
+          cmpa    #%00000001        
+          beq     ZU_Aktiv
+          
+          ;Passwort ändern
+          lda     TVOR_Flag
+          cmpa    #%00000001
+          beq     ZU_Change
+                    
+          rts             
+                                          
+;********| Aktiviert |***************************************************************************
+
+Aktiv      
+          
+          jsr     Check_PW
+          jsr     Check_RFID
+          jsr     Bewegungsmelder
+                   
+          jsr     Blink_Rot
+          
+          ;Ausgabe: "Alarm Aktiv"
+          jsr     A_Aktiv        
+          
+          ;Austrittsbedingungen 
+          lda     PW_Flag
+          cmpa    #%00000001
+          beq     ZU_Inaktiv
+           
+          lda     Bewegung_Flag
+          cmpa    #%10011111        
+          beq     ZU_Alarm
+          
+          lda     RFID_Flag
+          cmpa    #$FF
+          beq     ZU_Inaktiv
+          
+          lda     TZUR_Flag
+          cmpa    #%00000001
+          beq     ZU_Alarm
+          
+          rts        
+          
+;********| Sprünge |*****************************************************************************
+
+;Die Adresse des nächsten Schrittes wird in den Pointer geladen
+
+ZU_Alarm
+          ldhx    #Alarm
+          sthx    Pointer_Schritte
+          
+          jsr     Init_Alarmton
+          
+          ldhx    #0T
+          sthx    Schritte_Counter
+          
+          bset    CHECKED, TZUR_Flag       ;Verhindert dass ein Tastendruck öfters verwendet wird
+                    
+          rts 
+         
+
+ZU_Aktiv
+          clr     Alarm_Flag
+          bclr    0,PORTB
+          clr     Bewegung_Flag
+                    
+          ldhx    #Aktiv
+          sthx    Pointer_Schritte
+          
+          ldhx    #0T
+          sthx    Schritte_Counter
+          
+          bset    CHECKED, TOK_Flag
+
+          rts
+                                        
+ZU_Inaktiv
+          clr     Alarm_Flag
+          bclr    0,PORTB
+          clr     Bewegung_Flag
+			
+          ldhx    #Inaktiv
+          sthx    Pointer_Schritte
+          
+          ldhx    #0T
+          sthx    Schritte_Counter
+          
+          bset    CHECKED, TOK_Flag
+          clr     PW_Flag
+          bset    CHECKED, TZUR_Flag
+                    
+          rts
+           
+ZU_Change
+          bset    CHECKED, TVOR_Flag
+          
+          ldhx    #Change
+          sthx    Pointer_Schritte         
+          
+          rts
+                                    
+;********| Passwort ändern |*********************************************************************
+
+Change          
+
+          ;Ausgabe: "Neues Passwort"
+          jsr     A_Change
+          
+          jsr     Change_PW
+          jsr     Blink_Gruen
+          
+          lda     PW_Flag
+          cmpa    #%00100000
+          beq     ZU_Inaktiv
+ 
+          rts                
+                   
+;********| Ausgelöst |***************************************************************************
+
+Alarm    
+          bset    6,PORTD
+          bset    0,Alarm_Flag
+                    
+          jsr     Alarmton
+          jsr     Check_PW
+          jsr     Check_RFID   
+          jsr     Bewegungsmelder
+          
+          lda     Bewegung_Flag
+          cmpa    #%00000000
+          bne     No_Reset
+          
+          ldhx    #0T
+          sthx    Alarm_Timer
+          
+No_Reset          
+          ;Austrittsbedingungen 
+          ldhx    Alarm_Timer
+          incx
+          sthx    Alarm_Timer
+          cphx    #30000T
+          beq     ZU_Aktiv 
+          
+      
+          
+          lda     RFID_Flag
+          cmpa    #$FF
+          beq     ZU_Inaktiv
+          
+          lda     PW_Flag
+          cmpa    #%00000001
+          beq     ZU_Inaktiv
+            
+   
+          ;Ausgabe Text "Alarm"
+          jsr     A_Alarm
+          rts                 
+          
+;************************************************************************************************
+
+                INCLUDE 'LCD_Disp_8bit.inc'     ; Routine für das LCD Display
+;************************************************************************************************
+;*      LCD-ROUTINE                                                                              *
+;*                                                                                              *
+;*      Revision vom 14. januar 2013                                                            *
+;*                                                                                              *
+;*      Name:         Andreas Botzner                                                           *
+;*      Klasse:       4AEL                                                                      *
+;*      Version:      1.0                                                                       *
+;*                                                                                              *
+;*      Programmiert auf einem Target mit 4,9152 MHz                                            *
+;*                                                                                              *
+;*      Variabeln:                                                                              *
+;*      LCD_Pointer     ds      2T              ; Pointer auf die aktuelle LCD-Routine          *
+;*      LCD_Counter     ds      1T                                                              *
+;*      LCD_Oben        ds      16T             ; LCD erste Zeile, 16 Zeichen lang              *
+;*      LCD_Unten       ds      16T             ; LCD zweite Zeile, 16 Zeichen lang             *
+;*      DelayCounter    ds      1T              ; Grässlich - Delay für LCD...                  *
+;*      CopyCounter     ds      1T                                                              *
+;*      SourcePointer   ds      2T              ; Pointer für Copy-Routinen                     *
+;*      DestPointer     ds      2T              ; Ebenfalls für die Copy-Routinen               *
+;*      TextLenght      ds      1T                                                              *
+;*                                                                                              *
+;*      In Hauptloop kopieren:                                                                  *
+;*      jsr     Update_LCD                                                                      *
+;*                                                                                              *                                                                 
+;*      In ASM kopieren                                                                         *
+;*      INCLUDE 'LCD_Disp_8bit.inc'        ; Routine für das LCD Display                        *
+;*                                                                                              *
+;*      Ins Init:                                                                               *
+;*      jsr     Init_LCD                ; [LCD_Disp_8Bit.inc] Initialisiert das LCD             *
+;*                                                                                              *
+;************************************************************************************************
+
+;************************************************************************************************
+;*                                                                                              *
+;*      Initialisierung des LCD-Displays auf 8 Bit                                              *
+;*                                                                                              *
+;************************************************************************************************
+
+LCD_E_BIT       EQU     0                       ; Definitionen, auf welchem Port die
+LCD_E_PORT      EQU     PORTG                   ; Bits "E" und "RS" des LCD hängen
+LCD_RS_BIT      EQU     1
+LCD_RS_PORT     EQU     PORTG
+
+
+LCD_DATA_PORT   EQU     PORTA                   ; Auf welchem Port hängt das LCD (Datanbus)?
+
+DELTIME         EQU     20T                                        
+
+
+
+;************************************************************************************************
+;*                                                                                              *
+;*      Init_LCD: Initialisiert Pointer und Variablen für das LCD                               *
+;*                                                                                              *
+;************************************************************************************************
+
+Init_LCD
+
+                lda     #0T                     ; Counter auf Null setzen
+                sta     LCD_Counter
+                ldhx    #LCD_Wait_Start         ; LCD-Schrittkette beginnt mit diesem Schritt
+                sthx    LCD_Pointer
+              
+                rts
+
+
+;************************************************************************************************
+;*                                                                                              *
+;*      Update_LCD: Wird vom Main_Loop aufgerufen, kümmert sich um das Beschreiben des LCD      *
+;*      Führt praktisch nur nacheinander die verschienden Schritte der Schrittkette aus         *
+;*                                                                                              *
+;************************************************************************************************
+                
+Update_LCD                
+                ldhx    LCD_Pointer
+                jsr     0,X
+                rts
+
+;************************************************************************************************
+;*                                                                                              *
+;*      LCD_Wait_Start: Wartet am Anfang 50 msec, damit sich das LCD intern initialisieren      *
+;*      kann.                                                                                   *
+;*                                                                                              *
+;************************************************************************************************
+
+
+LCD_Wait_Start
+                lda     LCD_Counter
+                inca
+                sta     LCD_Counter
+                cmpa    #10T                     ; Warte 10 x 5msec R.T. = 50 msec
+                bne     Exit_LCD_Wait
+                ldhx    #LCD_Initializing
+                sthx    LCD_Pointer
+
+Exit_LCD_Wait
+                rts
+
+;************************************************************************************************
+;*                                                                                              *
+;*      LCD_Initialisierung: Initialisiert hardwaremäßig das LCD laut Datenblatt                *
+;*                                                                                              *
+;************************************************************************************************
+
+
+LCD_Initializing
+                lda     #$03
+                jsr     Write_LCD_Instruction
+                jsr     Delay
+
+                lda     #$03
+                jsr     Write_LCD_Instruction
+                jsr     Delay
+
+
+                lda     #$03
+                jsr     Write_LCD_Instruction
+                jsr     Delay
+                                                ;                   x  x  x  DL N  F  x  x
+
+                lda     #%00111000              ; $28 Function Set: 0  0  1  1  1  0  0  0
+                jsr     Write_LCD_Instruction   ; DL: 0=4-Bit-Interface  1=8-Bit-Interface
+                jsr     Delay
+
+
+                lda     #%00001100              ; $0C  Display On/Off
+                jsr     Write_LCD_Instruction
+                jsr     Delay
+
+                                                ;                  x  x  x  x  x  x  ID S
+                lda     #%00000110              ; $06  Entry Mode: 0  0  0  0  0  1  1  0
+                jsr     Write_LCD_Instruction   ; ID : 0=Adress decrement 1=Adress Increment
+                jsr     Delay
+
+                ldhx    #LCD_Cursor_Home
+                sthx    LCD_Pointer
+
+                rts
+
+;************************************************************************************************
+;*                                                                                              *
+;*      LCD_Cursor_Home: Setzt den Cursor (nicht sichtbar) in die "Home"-Position               *
+;*                                                                                              *
+;************************************************************************************************
+
+LCD_Cursor_Home
+                lda     #$80                    ; Cursor Home
+                jsr     Write_LCD_Instruction   ; ID : 0=Adress decrement 1=Adress Increment
+
+                ldhx    #LCD_Write_Zeile1
+                sthx    LCD_Pointer
+                
+                clra
+                sta     LCD_Counter
+                rts
+
+;************************************************************************************************
+;*                                                                                              *
+;*      LCD_Write_Zeile1: Schreibt die erste Zeile auf das Display                              *
+;*                                                                                              *
+;************************************************************************************************
+
+LCD_Write_Zeile1
+
+                ldhx    #LCD_Oben-1
+Next_Zeile1
+                aix     #1T
+                lda     0,X
+                jsr     Write_Lcd_Data
+                jsr     Delay2
+                lda     LCD_Counter
+                inca
+                sta     LCD_Counter
+                cmpa    #16T
+                bne     Next_Zeile1
+
+                ldhx    #LCD_Goto_Zeile2
+                sthx    LCD_Pointer
+                
+                clra
+                sta     LCD_Counter
+
+                rts
+
+
+;************************************************************************************************
+;*                                                                                              *
+;*      LCD_Goto_Zeile2: Setzt den Cursor an den Anfang der zweiten Zeile                       *
+;*                                                                                              *
+;************************************************************************************************
+
+LCD_Goto_Zeile2
+                lda     #$C0                    ; Cursor zweite Zeile
+                jsr     Write_LCD_Instruction   ; ID : 0=Adress decrement 1=Adress Increment
+
+                ldhx    #LCD_Write_Zeile2
+                sthx    LCD_Pointer
+                clra
+                sta     LCD_Counter
+                rts
+
+;************************************************************************************************
+;*                                                                                              *
+;*      LCD_Write_Zeile2: Schreibt die zweite Zeile auf das Display                             *
+;*                                                                                              *
+;************************************************************************************************
+
+LCD_Write_Zeile2
+                ldhx    #LCD_Unten-1
+Next_Zeile2
+                aix     #1T
+                lda     0,X
+                jsr     Write_Lcd_Data  
+                jsr     Delay2
+                lda     LCD_Counter
+                inca
+                sta     LCD_Counter
+                cmpa    #16T
+                bne     Next_Zeile2
+
+                ldhx    #LCD_Cursor_Home
+                sthx    LCD_Pointer
+                clra
+                sta     LCD_Counter
+
+                rts
+
+
+
+;************************************************************************************************
+;*                                                                                              *
+;*      LCD_Instruction: Schreibt eine "Instruction" (Befehl) auf das LCD                       *
+;*                                                                                              *
+;************************************************************************************************
+
+
+Write_LCD_Instruction
+                bclr    LCD_RS_BIT,LCD_RS_PORT            ; RS = 0
+                nop
+                nop
+                sta     LCD_DATA_PORT
+                nop
+                nop
+                nop
+                nop
+                bset    LCD_E_BIT,LCD_E_PORT             ; Clock auf "E"
+                nop
+                nop
+                nop
+                nop
+                nop
+                nop
+                bclr    LCD_E_BIT,LCD_E_PORT
+                rts
+
+Write_Lcd_Data
+                bset    LCD_RS_BIT,LCD_RS_PORT            ; RS = 1
+                nop
+                nop
+                nop
+                nop
+                sta     LCD_DATA_PORT
+                nop
+                nop
+                nop
+                nop
+                nop
+                nop
+                bset    LCD_E_BIT,LCD_E_PORT             ; Clock auf "E"
+                nop
+                nop
+                bclr    LCD_E_BIT,LCD_E_PORT
+                rts
+
+
+
+
+Delay           ldhx    #$500
+next_x          aix     #-1
+                cphx    #0
+                bne     next_x
+                rts
+
+
+Delay2
+                lda     DelayCounter
+                inca
+                sta     DelayCounter
+                cmpa    #DELTIME
+                bne     Delay2
+                clra
+                sta     DelayCounter
+                rts
+
+;************************************************************************************************
+;*                                                                                              *
+;*      Utility: Kopiert einen "TextLenght"-langen Text von einer Position (SourcePointer)      *
+;*      in eine andere (DestPointer) um.                                                        *
+;*                                                                                              *
+;************************************************************************************************
+
+CopyText
+        clra
+        sta     CopyCounter
+NextCopyText
+        ldhx    SourcePointer
+        lda     0,X
+        aix     #1
+        sthx    SourcePointer
+        ldhx    DestPointer
+        sta     0,X
+        aix     #1T
+        sthx    DestPointer
+        lda     CopyCounter
+        inca
+        sta     CopyCounter
+        cmpa    TextLenght                  ; Lenght = Anzahl der Zeichen, die zu kopieren sind
+        bne     NextCopyText
+ rts
+
+;************************************************************************************************
+;*                                                                                              *
+;*      Dezimal-BCD: Wandelt eine Dezimalzahl in eine BCD-Zahl um und schreibt sie              *
+;*      in die Position "DestPointer", "DestPointer+1" und "DestPointer+2"                      *
+;*      Die zu wandelnde Zahl steht im Register A                                               *
+;*                                                                                              *
+;************************************************************************************************
+
+
+DezimalBCD
+        clrh                            ; da 8 Bit-Division: H = 0, A hat ja schon den Wert, X
+        ldx     #10T                    ; noch mit 10 laden
+        div
+        psha                           ; Ergebnis in A, Rest in H
+        pshh                           ; Rette das Ergebnis auf den Stack
+        pula
+        add     #$30                   ; "0" dazuzählen
+        ldhx    DestPointer
+        sta     2,X
+        pula
+        clrh
+        ldx     #10T
+        div
+        psha
+        pshh
+        pula
+        add     #$30
+        ldhx    DestPointer
+        sta     1,X
+        pula
+        clrh
+        ldx     #10T
+        div
+        pshh
+        pula
+        cmpa    #0T
+        beq     BCD_NoZero              ; Kill leading Zero...
+        add     #$30
+        ldhx    DestPointer
+        sta     0,X
+        rts
+BCD_NoZero
+        lda     #' '
+        ldhx    DestPointer
+        sta     0,X
+        lda     1,X
+        cmpa    #'0'
+        bne     Exit_DBCD               ; Kill second Zero if first even zero
+        lda     #' '
+        sta     1,X
+Exit_DBCD        
+        rts
+
+
+
+;************************************************************************************************
+;*  Dezimal-BCD: Wandelt eine Dezimalzahl in eine BCD-Zahl um und schreibt sie                  *
+;*  in die Position "DestPointer", "DestPointer+1" und "DestPointer+2"                          *
+;*  Die zu wandelnde Zahl steht im Register A                                                   *
+;************************************************************************************************
+
+DezimalBCD_Druck
+        clrh                            ; da 8 Bit-Division: H = 0, A hat ja schon den Wert, X
+        ldx     #10T                    ; noch mit 10 laden
+        div
+        psha                           ; Ergebnis in A, Rest in H
+        pshh                           ; Rette das Ergebnis auf den Stack
+        pula
+        add     #48T                    ; "0" dazuzählen
+        ldhx    DestPointer
+        sta     2,X
+        pula
+        ldx     #10T
+        div
+        pshh
+        pula
+        add     #48T
+        ldhx    DestPointer
+        sta     0,X
+        lda     #'.'                    ; Punkt setzen
+        sta     1,X
+        rts
+
+
+;************************************************************************************************
+;Beispiele:
+
+;Ausgabe_Text
+;
+;        ldhx   #Text_Ausgabe
+;        sthx   SourcePointer
+;        ldhx   #LCD_Oben
+;        sthx   DestPointer
+;        lda    #32T
+;        sta    TextLenght
+;        
+;        jsr    CopyText
+;        
+;
+;Ausgabe_Zahl        
+;        ldhx   #LCD_Unten+13
+;        sthx   DestPointer
+;        lda    Zahl
+;        
+;        jsr    DezimalBCD
+;
+;        rts
+;        
+;Text_Ausgabe
+;              ;----------------
+;        dc.b  'Die Zahl        '
+;        dc.b  'ist             '
+
+                INCLUDE 'Tastenroutine.inc'     ; Routine für die Abfrage der Taster
+;************************************************************************************************
+;*      TASTENROUTINE_V20                                                                       *
+;*                                                                                              *
+;*      Revision vom 14. januar 2013                                                            *
+;*                                                                                              *
+;*      Name:         Valentin Bernrad                                                          *
+;*      Klasse:       4AEL                                                                      *
+;*      Version:      2.0                                                                       *
+;*                                                                                              *
+;*      Tastenroutine mit mehreren Tasten und Entprellzeit                                      *
+;*                                                                                              *
+;*      Variabeln:                                                                              *
+;*      T0_Flag       ds      1T                                                                *
+;*      T0_Counter    ds      1T                                                                *
+;*      T1_Flag       ds      1T                                                                *
+;*      T1_Counter    ds      1T                                                                *
+;*      T2_Flag       ds      1T                                                                *
+;*      T2_Counter    ds      1T                                                                *
+;*      T3_Flag       ds      1T                                                                *
+;*      T4_Counter    ds      1T                                                                *
+;*      T4_Flag       ds      1T                                                                *
+;*      T4_Counter    ds      1T                                                                *
+;*      T5_Flag       ds      1T                                                                *
+;*      T5_Counter    ds      1T                                                                *
+;*      T6_Flag       ds      1T                                                                *
+;*      T6_Counter    ds      1T                                                                *
+;*      T7_Flag       ds      1T                                                                *
+;*      T7_Counter    ds      1T                                                                *
+;*      T8_Flag       ds      1T                                                                *
+;*      T8_Counter    ds      1T                                                                *
+;*      T9_Flag       ds      1T                                                                *
+;*      T9_Counter    ds      1T                                                                *
+;*      TOK_Flag      ds      1T                                                                *
+;*      TOK_Counter   ds      1T                                                                *
+;*      TUP_Flag      ds      1T                                                                *
+;*      TUP_Counter   ds      1T                                                                *
+;*      TVOR_Flag     ds      1T                                                                * 
+;*      TZUR_Counter  ds      1T                                                                *
+;*      TValue        ds      1T                                                                *
+;*                                                                                              *    
+;*      In Hauptloop kopieren:                                                                  *
+;*      jsr     Tastenroutine                                                                   *
+;*                                                                                              *                                                                 *
+;*                                                                                              *
+;*      In ASM kopieren                                                                         *
+;*      INCLUDE 'Tastenroutine.inc'     ; Routine für die Abfrage der Taster                    *
+;*                                                                                              *
+;************************************************************************************************
+
+; OK --> PD1
+; ZUR --> PD0
+; VOR --> PD2
+; 1 --> PD3 
+; 2 --> PD4 
+; 3 --> PF6 
+; 4 --> PF5 
+; 5 --> PF7 
+; 6 --> PF4
+; 7 --> PF3
+; 8 --> PF2
+; 9 --> PF1
+; 0 --> PF0
+
+
+ENTPRELLZEIT  EQU     5
+
+PRESSED       EQU     0
+CHECKED       EQU     1
+
+;************************************************************************************************
+;*                               Programm für die Tasterroutine                                 *
+;************************************************************************************************
+
+Tastenroutine 
+
+        lda    #$FF
+        sta    TValue   
+
+;Taste 0       
+        
+        brset  0, PORTF, SetzeT0            ; frage ab ob Taster gedrückt wurde
+        
+        lda    #0T   
+        sta    T0_Flag                      ; wenn nicht gedrückt, lösche ganzes Byte
+        sta    T0_Counter      
+        bra    T0Ende 
+SetzeT0  
+        lda    T0_Counter
+        inca
+        sta    T0_Counter
+        cmpa   #ENTPRELLZEIT
+        bne    T0Ende
+        bset   PRESSED, T0_Flag             ; wenn gedrückt, setze PRESSED-Bit
+        lda    #$00
+        sta    TValue         
+        
+T0Ende
+                        
+;Taste 9        
+        
+        brset  1, PORTF, SetzeT9
+        
+        lda    #0T   
+        sta    T9_Flag                      ; wenn nicht gedrückt, lösche ganzes Byte
+        sta    T9_Counter      
+        bra    T9Ende 
+SetzeT9  
+        lda    T9_Counter
+        inca
+        sta    T9_Counter
+        cmpa   #ENTPRELLZEIT
+        bne    T9Ende
+        bset   PRESSED, T9_Flag             ; wenn gedrückt, setze PRESSED-Bit
+        lda    #$09
+        sta    TValue 
+T9Ende
+        
+
+        
+;Taste 8        
+        
+        brset  2, PORTF, SetzeT8
+        
+        lda    #0T   
+        sta    T8_Flag                      ; wenn nicht gedrückt, lösche ganzes Byte
+        sta    T8_Counter      
+        bra    T8Ende 
+SetzeT8  
+        lda    T8_Counter
+        inca
+        sta    T8_Counter
+        cmpa   #ENTPRELLZEIT
+        bne    T8Ende
+        bset   PRESSED, T8_Flag             ; wenn gedrückt, setze PRESSED-Bit
+        lda    #$08
+        sta    TValue         
+T8Ende
+        
+
+
+;Taste 7        
+        
+        brset  3, PORTF, SetzeT7
+        
+        lda    #0T   
+        sta    T7_Flag                      ; wenn nicht gedrückt, lösche ganzes Byte
+        sta    T7_Counter      
+        bra    T7Ende 
+SetzeT7  
+        lda    T7_Counter
+        inca
+        sta    T7_Counter
+        cmpa   #ENTPRELLZEIT
+        bne    T7Ende
+        bset   PRESSED, T7_Flag             ; wenn gedrückt, setze PRESSED-Bit
+        lda    #$07
+        sta    TValue         
+T7Ende
+        
+
+
+;Taste 6        
+        
+        brset  4, PORTF, SetzeT6
+        
+        lda    #0T   
+        sta    T6_Flag                      ; wenn nicht gedrückt, lösche ganzes Byte
+        sta    T6_Counter      
+        bra    T6Ende 
+SetzeT6  
+        lda    T6_Counter
+        inca
+        sta    T6_Counter
+        cmpa   #ENTPRELLZEIT
+        bne    T0Ende
+        bset   PRESSED, T6_Flag             ; wenn gedrückt, setze PRESSED-Bit
+        lda    #$06
+        sta    TValue         
+T6Ende
+        
+
+
+;Taste 5        
+        
+        brset  7, PORTF, SetzeT5
+        
+        lda    #0T   
+        sta    T5_Flag                      ; wenn nicht gedrückt, lösche ganzes Byte
+        sta    T5_Counter      
+        bra    T5Ende 
+SetzeT5  
+        lda    T5_Counter
+        inca
+        sta    T5_Counter
+        cmpa   #ENTPRELLZEIT
+        bne    T5Ende
+        bset   PRESSED, T5_Flag             ; wenn gedrückt, setze PRESSED-Bit
+        lda    #$05
+        sta    TValue         
+T5Ende
+        
+
+
+;Taste 4        
+        
+        brset  5, PORTF, SetzeT4
+        
+        lda    #0T   
+        sta    T4_Flag                      ; wenn nicht gedrückt, lösche ganzes Byte
+        sta    T4_Counter      
+        bra    T4Ende 
+SetzeT4  
+        lda    T4_Counter
+        inca
+        sta    T4_Counter
+        cmpa   #ENTPRELLZEIT
+        bne    T4Ende
+        bset   PRESSED, T4_Flag             ; wenn gedrückt, setze PRESSED-Bit
+        lda    #$04
+        sta    TValue         
+T4Ende
+        
+
+
+;Taste 3        
+        
+        brset  6, PORTF, SetzeT3
+        
+        lda    #0T   
+        sta    T3_Flag                      ; wenn nicht gedrückt, lösche ganzes Byte
+        sta    T3_Counter      
+        bra    T3Ende 
+SetzeT3  
+        lda    T3_Counter
+        inca
+        sta    T3_Counter
+        cmpa   #ENTPRELLZEIT
+        bne    T3Ende
+        bset   PRESSED, T3_Flag             ; wenn gedrückt, setze PRESSED-Bit
+        lda    #$03
+        sta    TValue         
+T3Ende
+        
+
+
+;Taste 2        
+        
+        brset  4, PORTD, SetzeT2
+        
+        lda    #0T   
+        sta    T2_Flag                      ; wenn nicht gedrückt, lösche ganzes Byte
+        sta    T2_Counter      
+        bra    T2Ende 
+SetzeT2  
+        lda    T2_Counter
+        inca
+        sta    T2_Counter
+        cmpa   #ENTPRELLZEIT
+        bne    T2Ende
+        bset   PRESSED, T2_Flag             ; wenn gedrückt, setze PRESSED-Bit
+        lda    #$02
+        sta    TValue         
+T2Ende
+        
+
+;Taste 1        
+        
+        brset  3, PORTD, SetzeT1
+        
+        lda    #0T   
+        sta    T1_Flag                      ; wenn nicht gedrückt, lösche ganzes Byte
+        sta    T1_Counter      
+        bra    T1Ende 
+SetzeT1  
+        lda    T1_Counter
+        inca
+        sta    T1_Counter
+        cmpa   #ENTPRELLZEIT
+        bne    T1Ende
+        bset   PRESSED, T1_Flag             ; wenn gedrückt, setze PRESSED-Bit
+        lda    #$01
+        sta    TValue        
+T1Ende
+        
+
+;Taste VOR        
+        
+        brset  2, PORTD, SetzeTVOR
+        
+        lda    #0T   
+        sta    TVOR_Flag                      ; wenn nicht gedrückt, lösche ganzes Byte
+        sta    TVOR_Counter      
+        bra    TVOREnde 
+SetzeTVOR 
+        lda    TVOR_Counter
+        inca
+        sta    TVOR_Counter
+        cmpa   #ENTPRELLZEIT
+        bne    TVOREnde
+        bset   PRESSED, TVOR_Flag             ; wenn gedrückt, setze PRESSED-Bit
+        lda    #$0A
+        sta    TValue         
+TVOREnde
+        
+
+
+;Taste OK        
+        
+        brset  1, PORTD, SetzeTOK
+        
+        lda    #0T   
+        sta    TOK_Flag                      ; wenn nicht gedrückt, lösche ganzes Byte
+        sta    TOK_Counter      
+        bra    TOKEnde 
+SetzeTOK  
+        lda    TOK_Counter
+        inca
+        sta    TOK_Counter
+        cmpa   #ENTPRELLZEIT
+        bne    TOKEnde
+        bset   PRESSED, TOK_Flag             ; wenn gedrückt, setze PRESSED-Bit
+        lda    #$0B
+        sta    TValue         
+TOKEnde
+        
+
+
+;Taste ZUR        
+        
+        brset  0, PORTD, SetzeTZUR
+        
+        lda    #0T   
+        sta    TZUR_Flag                      ; wenn nicht gedrückt, lösche ganzes Byte
+        sta    TZUR_Counter      
+        bra    TZUREnde 
+SetzeTZUR  
+        lda    TZUR_Counter
+        inca
+        sta    TZUR_Counter
+        cmpa   #ENTPRELLZEIT
+        bne    TZUREnde
+        bset   PRESSED, TZUR_Flag             ; wenn gedrückt, setze PRESSED-Bit
+        lda    #$0C
+        sta    TValue         
+TZUREnde
+        rts
+
+        
+        
+
+        
+     
+                INCLUDE 'Timerinterrupt_V20.inc'; Timerinterrupt für die Tonausgabe
+;************************************************************************************************
+;*                                                                                              *
+;*      TIMERINTERRUPT                                                                          * 
+;*                                                                                              *
+;*      Revision vom 24.01.2014                                                                 * 
+;*                                                                                              *
+;*      Name: Valentin Bernard                                                                  * 
+;*      Klasse: 5AEL                                                                            * 
+;*      Version: 1.0                                                                            * 
+;*                                                                                              *
+;*      Timer für die Alarmausgabe. Frequenz veränderbar über T_Low und T_High.                 *
+;*                                                                                              *
+;*      In Init kopieren:                                                                       * 
+;*      jsr     Init_Alarmtimer                                                                 * 
+;*                                                                                              *
+;*      In ASM kopieren:                                                                        *
+;*      INCLUDE 'Timerinterrupt_V10.inc'                                                        * 
+;*                                                                                              *
+;************************************************************************************************
+
+Init_Alarmtimer
+ 
+  mov   #%00000000,TPM1SC     ; Timer 1CH2 STOP
+
+
+  mov   #$60,TPM1C5VH         ; Setzt einen Output Compare nach $6000 Clicks
+  mov   #$00,TPM1C5VL         ; das sind bei dem gegebenen Clock GENAU 5 msec
+                           
+
+  mov   #%01010000,TPM1C5SC   ; Timer 1 Channel 5 Gesetzt für Output Compare $50
+;         ||||||||
+;         ||||||||_____  not used
+;         |||||||______  not used
+;         ||||||_______  ELS1A Edge Level Select Bits for Channel 1
+;         |||||________  ELS1B [B:A]=[0:1]=Toggle Output con Compare  [0:0]=Software compare only
+;         ||||_________  MS1A Mode select for Timer 1  [B:A]=[0:1] = Output compare
+;         |||__________  MS1B
+;         ||___________  CH1IE 0=Interr. disable  1=Interrupt enable
+;         |____________  CH1F  0=No input capt. or Outp.Comp on Pin  1=Input capt. or Outp.Comp on Pin 
+ 
+
+  mov   #%00001000,TPM1SC     ; Startet den Timer 1CH2
+;         ||||||||
+;         ||||||||_____  PS0  Prescaler : 0:0:0=Clock/1    0:0:1=Clock/2    0:1:0=Clock/4
+;         |||||||______  PS1              0:1:1=Clock/8    1:0:0=Clock/16   1:0:1=Clock/32
+;         ||||||_______  PS2              1:1:0=Clock/64   1:1:1=Clock/128
+;         |||||________  CLKS [A] --> [B:A]  0:0 = TPM OFF  0:1 = Bus rate Clock (BUSCLK)
+;         ||||_________  CLKS [B] CLK Source 1:0 = Fixed system Clock (XCLX) 1:1 Ex. Source (TPMxCLK)
+;         |||__________  CPWMS Normal Op (0) or Center alligned PWM (1)
+;         ||___________  TOIE Timer Interrupt Enable
+;         |____________  TOV - Timer Overflow, Read only
+
+  rts
+
+
+;***********************************************************************************************************
+;*   ALARMTON INTERRUPRT: Toggelt PB0                                                                      *
+;***********************************************************************************************************
+
+Timer_Over
+
+    pshh
+    
+    lda   TPM1C5SC
+    mov   #%01010000,TPM1C5SC   ;Flag löschen
+  
+    lda   TPM1C5VL              ; Nächster Interrupt in weiteren $6000 Clicks
+    add   T_Low                 ; Also wieder $02EB x 203,451 nsec
+    sta   TPM1C5VL	
+
+    lda   TPM1C5VH
+    adc   T_High		 
+    sta   TPM1C5VH
+    
+    lda   Alarm_Flag
+    cmp   #%00000011
+    bne   Ende_Timer
+   
+    brset 0,PORTB,Aus
+    
+    bset  0,PORTB
+    
+    bra   Ein
+    
+Aus 
+    bclr  0,PORTB
+    
+Ein    
+    
+    pulh
+    rti   
+
+Ende_Timer
+
+    bclr  0,PORTB   
+    pulh
+
+    rti
+                INCLUDE 'Alarmton_LUT.inc'      ; Tonausgabe
+;************************************************************************************************
+;*      ALARMTON-AUSGABE                                                                       	*
+;*                                                                                              *
+;*      Revision vom 11. Mai 2014                                                               *
+;*                                                                                              *
+;*      Name: Bernard Valentin                                                                  *
+;*      Klasse: 5AEL                                                                            *
+;*      Version: 1.0                                                                            *
+;*                                                                       	                  		*
+;*      Ein Alarmotn wird als Rechteckimpuls augegeben. Es wird zwischen 2 Tönen hin und        *
+;*      her gewechselt.                                                                        	*
+;*                                                                                              *
+;*                                                                                              *
+;*      Variabeln:                                                                            	*
+;*      Ton_Timer       ds      1T                                                              *
+;*      Ton_Select      ds      1T                                                              * 
+;*      T_High          ds      1T                                                              *
+;*      T_Low           ds      1T                                                              *
+;*      Pointer_LOW     ds      2T                                                              *
+;*      Pointer_HIGH    ds      2T                                                              *
+;*                                                                                              *
+;*      Include:                                                                              	*
+;*      INCLUDE 'Alarmton.inc'                                            	                    *
+;*                                                                                              *
+;*      In Init kopieren:                                                                       * 
+;*      jsr     Init_Alarmton                                                                   * 
+;*                                                                                              *
+;*      Eingang:                                                                               	*
+;*      jsr   Alarmton                                                     	                    *
+;*                                                                                              *
+;*                                                                                              *
+;************************************************************************************************
+
+TONDAUER       EQU     25T
+
+Init_Alarmton
+
+      lda     #$FF
+      sta     T_High
+      lda     #$FF        
+      sta     T_Low                                 
+                
+      ldhx    #LUT_HIGH
+      sthx    Pointer_HIGH
+                
+      ldhx    #LUT_LOW
+      sthx    Pointer_LOW
+
+      rts
+
+Alarmton
+      
+      lda     Ton_Timer
+      cmpa    #TONDAUER
+      bne     IncTimer
+      
+      jsr     Ton_Steps
+      
+IncTimer       
+            
+      lda     Ton_Timer
+      inca
+      sta     Ton_Timer
+      
+      lda    T_High
+      cmpa    #$FF
+      bne     No_Pause
+
+Pause      
+      
+      bclr    1,Alarm_Flag
+      rts
+      
+No_Pause
+
+      bset    1,Alarm_Flag
+      rts
+
+Ton_Steps           
+               
+      lda     #0T
+      sta     Ton_Timer
+            
+      ldhx    Pointer_HIGH
+      lda     0,X        
+      sta     T_High
+      
+      ldhx    Pointer_LOW
+      lda     0,X        
+      sta     T_Low
+      
+      ldhx  Pointer_HIGH
+      aix   #1T
+      sthx  Pointer_HIGH
+          
+      cphx  #LUT_HIGH_Ende
+      beq   LUT_HIGH_Reset
+      
+      
+Pointer_LOW_INC      
+      
+      ldhx  Pointer_LOW
+      aix   #1T
+      sthx  Pointer_LOW
+          
+      cphx  #LUT_LOW_Ende
+      beq   LUT_LOW_Reset
+                
+
+      rts     
+
+
+LUT_HIGH_Reset
+      ldhx  #LUT_HIGH
+      sthx  Pointer_HIGH
+      bra   Pointer_LOW_INC
+          
+              
+LUT_LOW_Reset
+      ldhx  #LUT_LOW
+      sthx  Pointer_LOW
+      rts   
+  
+  
+;************************************************************************************************  
+;************************************************************************************************
+;*                                           Tabellen                                           *
+;************************************************************************************************ 
+;************************************************************************************************ 
+      
+      
+;************************************************************************************************
+;*                                           LUT_HIGH                                           *
+;************************************************************************************************      
+      
+LUT_HIGH
+      
+      dc.b       T_D4
+      dc.b       T_F4
+      dc.b       T_G4
+      dc.b       T_G4
+      dc.b       T_G4
+      dc.b       T_Pause
+      dc.b       T_Pause
+      dc.b       T_D4
+      dc.b       T_Dd4
+      dc.b       T_D4
+      dc.b       T_F4
+      dc.b       T_F4
+      dc.b       T_D4
+      dc.b       T_D4
+      dc.b       T_D4
+      dc.b       T_Pause
+      dc.b       T_Pause
+      dc.b       T_D4  
+      dc.b       T_F4
+      dc.b       T_F4
+      dc.b       T_D4
+      dc.b       T_D4
+      dc.b       T_D4
+      dc.b       T_Pause
+      dc.b       T_Pause
+      dc.b       T_D4
+      dc.b       T_C4
+      dc.b       T_C4
+      dc.b       T_C4
+      dc.b       T_C4
+      dc.b       T_C4
+      dc.b       T_Pause
+      dc.b       T_Pause
+      dc.b       T_Pause
+      dc.b       T_Pause
+      dc.b       T_D4
+      dc.b       T_F4
+      dc.b       T_G4
+      dc.b       T_G4
+      dc.b       T_G4
+      dc.b       T_Pause
+      dc.b       T_Pause
+      dc.b       T_D4
+      dc.b       T_Dd4
+      dc.b       T_D4
+      dc.b       T_F4
+      dc.b       T_F4
+      dc.b       T_D4
+      dc.b       T_D4
+      dc.b       T_D4
+      dc.b       T_Pause
+      dc.b       T_Pause
+      dc.b       T_D4  
+      dc.b       T_F4
+      dc.b       T_F4
+      dc.b       T_D4
+      dc.b       T_D4
+      dc.b       T_D4
+      dc.b       T_Pause
+      dc.b       T_Pause
+      dc.b       T_D4
+      dc.b       T_C4
+      dc.b       T_C4
+      dc.b       T_C4
+      dc.b       T_C4
+      dc.b       T_C4
+      dc.b       T_Pause
+      dc.b       T_Pause
+      dc.b       T_Pause
+      dc.b       T_Pause
+        
+LUT_HIGH_Ende
+
+
+
+;************************************************************************************************
+;*                                           LUT_LOW                                            *
+;************************************************************************************************
+
+LUT_LOW      
+     
+      dc.b       T_D4_L
+      dc.b       T_F4_L
+      dc.b       T_G4_L
+      dc.b       T_G4_L
+      dc.b       T_G4_L
+      dc.b       T_Pause
+      dc.b       T_Pause
+      dc.b       T_D4_L
+      dc.b       T_Dd4_L
+      dc.b       T_D4_L
+      dc.b       T_F4_L
+      dc.b       T_F4_L
+      dc.b       T_D4_L
+      dc.b       T_D4_L
+      dc.b       T_D4_L
+      dc.b       T_Pause
+      dc.b       T_Pause
+      dc.b       T_D4_L  
+      dc.b       T_F4_L
+      dc.b       T_F4_L
+      dc.b       T_D4_L
+      dc.b       T_D4_L
+      dc.b       T_D4_L
+      dc.b       T_Pause
+      dc.b       T_Pause
+      dc.b       T_D4_L
+      dc.b       T_C4_L
+      dc.b       T_C4_L
+      dc.b       T_C4_L
+      dc.b       T_C4_L
+      dc.b       T_C4_L
+      dc.b       T_Pause
+      dc.b       T_Pause
+      dc.b       T_Pause
+      dc.b       T_Pause
+      dc.b       T_D4_L
+      dc.b       T_F4_L
+      dc.b       T_G4_L
+      dc.b       T_G4_L
+      dc.b       T_G4_L
+      dc.b       T_Pause
+      dc.b       T_Pause
+      dc.b       T_D4_L
+      dc.b       T_Dd4_L
+      dc.b       T_D4_L
+      dc.b       T_F4_L
+      dc.b       T_F4_L
+      dc.b       T_D4_L
+      dc.b       T_D4_L
+      dc.b       T_D4_L
+      dc.b       T_Pause
+      dc.b       T_Pause
+      dc.b       T_D4_L  
+      dc.b       T_F4_L
+      dc.b       T_F4_L
+      dc.b       T_D4_L
+      dc.b       T_D4_L
+      dc.b       T_D4_L
+      dc.b       T_Pause
+      dc.b       T_Pause
+      dc.b       T_D4_L
+      dc.b       T_C4_L
+      dc.b       T_C4_L
+      dc.b       T_C4_L
+      dc.b       T_C4_L
+      dc.b       T_C4_L
+      dc.b       T_Pause
+      dc.b       T_Pause
+      dc.b       T_Pause
+      dc.b       T_Pause    
+     
+LUT_LOW_Ende     
+     
+
+
+;************************************************************************************************
+;*                                     Konstanten High                                          *
+;************************************************************************************************
+
+T_Pause         EQU     $FF   
+T_E5            EQU     $0E
+T_Dd5           EQU     $0F
+T_D5            EQU     $10
+T_Cc5           EQU     $11
+T_C5            EQU     $12
+T_H4            EQU     $13
+T_Aa4           EQU     $14
+T_A4            EQU     $15
+T_Gg4           EQU     $17
+T_G4            EQU     $18
+T_Ff4           EQU     $19
+T_F4            EQU     $1B
+T_E4            EQU     $1D
+T_Dd4           EQU     $1E
+T_D4            EQU     $20
+T_Cc4           EQU     $22
+T_C4            EQU     $24  
+
+
+;************************************************************************************************
+;*                                     Konstanten Low                                           *
+;************************************************************************************************
+
+
+T_E5_L          EQU     $8F
+T_Dd5_L         EQU     $6D
+T_D5_L          EQU     $58
+T_Cc5_L         EQU     $51
+T_C5_L          EQU     $58
+T_H4_L          EQU     $70
+T_Aa4_L         EQU     $97
+T_A4_L          EQU     $D1
+T_Gg4_L         EQU     $1D
+T_G4_L          EQU     $7D
+T_Ff4_L         EQU     $F2
+T_F4_L          EQU     $7D
+T_E4_L          EQU     $1F
+T_Dd4_L         EQU     $DB
+T_D4_L          EQU     $B0
+T_Cc4_L         EQU     $A2
+T_C4_L          EQU     $B1
+                INCLUDE 'Blinklichter.inc'      ; Routine für das Blicklicht
+;************************************************************************************************
+;*      BLINKLICHTER                                                                            *
+;*                                                                                              *
+;*      Revision vom 10. Januar 2014                                                            *
+;*                                                                                              *
+;*      Name: Valentin Beranrd                                                                  *
+;*      Klasse: 5AEL                                                                            *
+;*      Version: 1.0                                                                            *
+;*                                                                                              *
+;*      Blinklicht, Variable Dauer                                                              *
+;*                                                                                              *
+;*      Variabeln:                                                                              *
+;*      Blink_Counter    ds  1T                                                                 *
+;*                                                                                              *
+;*      In Hauptloop kopieren:                                                                  *
+;*      jsr     Blinklicht                                                                      *
+;*                                                                                              *
+;*      In Init kopieren:                                                                       *
+;*      jsr   Init_Blinklicht                                                                   *
+;*                                                                                              *
+;*      In ASM kopieren                                                                         *
+;*      INCLUDE 'Blinklichter.inc'        ; Routine für das Blicklicht                          *
+;************************************************************************************************
+
+VERZOEGERUNG    EQU   50T
+BLINK_ROT       EQU   6
+BLINK_GRUEN     EQU   7
+BLINK_PORT      EQU   PORTD
+
+;************************************************************************************************
+;*                           Initialisierungen für das Blinklicht                               *
+;************************************************************************************************
+
+Init_Blinklicht
+                lda   #10T
+                sta   Blink_Counter
+                rts
+
+
+;************************************************************************************************
+;*                          Programm für das rote Blinklicht                                    *
+;************************************************************************************************
+
+Blink_Rot
+
+          bclr  BLINK_GRUEN,BLINK_PORT
+        
+          lda   Blink_Counter               	; Verzögerung 50 x 10ms = 0,5s
+          inca
+          sta   Blink_Counter
+          cmpa  #VERZOEGERUNG                         
+          bne   Ende_Rot
+          
+          lda   #0T
+          sta   Blink_Counter
+          brset BLINK_ROT,BLINK_PORT,Rot_aus
+
+Rot_ein
+          bset  BLINK_ROT,BLINK_PORT
+          rts
+   
+Rot_aus
+          bclr  BLINK_ROT,BLINK_PORT
+          rts
+
+Ende_Rot
+          rts
+          
+                    
+;************************************************************************************************
+;*                          Programm für das gruene Blinklicht                                  *
+;************************************************************************************************
+
+Blink_Gruen
+
+          bclr  BLINK_ROT,BLINK_PORT
+
+          lda   Blink_Counter               	; Verzögerung 100 x 10ms = 1s
+          inca
+          sta   Blink_Counter 
+          cmpa  #VERZOEGERUNG                         
+          bne   Ende_Gruen
+          
+          lda   #0T
+          sta   Blink_Counter
+          brset BLINK_GRUEN,BLINK_PORT,Gruen_aus
+
+Gruen_ein
+          bset  BLINK_GRUEN,BLINK_PORT
+          rts
+   
+Gruen_aus
+          bclr  BLINK_GRUEN,BLINK_PORT
+          rts
+
+Ende_Gruen
+          rts
+                INCLUDE 'Bewegungsmelder.inc'   ; Bewegungsmelder auslesen
+;************************************************************************************************
+;*      BEWEGUNGSMELDER                                                                         *
+;*                                                                                              *
+;*      Revision vom 10. Januar 2014                                                            *
+;*                                                                                              *
+;*      Name: Valentin Beranrd                                                                  *
+;*      Klasse: 5AEL                                                                            *
+;*      Version: 1.0                                                                            *
+;*                                                                                              *
+;*      Auslesen des Bewegungsmelders. Nach 4 Aufeinanderfolgenden High-Pegeln mit nicht        *
+;*      mehr als einer Minute Zeit dazwischen wird der Alarm ausgesößt. Erst die 1-minütige     *
+;*      Abwesenheit von High-Pegeln resetiert das Bewegungs-Flag wieder, und der Alarm-         *
+;*      Countdown kann beginnen.                                                                *
+;*                                                                                              *
+;*      Variabeln:                                                                              *
+;*      Bewegung_Flag    ds   1T                                                                *
+;*      Bewegung_Counter ds   2T                                                                *
+;*                                                                                              *
+;*      Eingang:                                                                                *
+;*      jsr     Bewegungsmelder                                                                 *
+;*                                                                                              *
+;*      In ASM kopieren                                                                         *
+;*      INCLUDE 'Bewegungsmelder.inc'        ; Routine für das Blicklicht                       *
+;*                                                                                              *  
+;************************************************************************************************
+
+BEWEGUNG_PIN      EQU     1
+BEWEGUNG_PORT     EQU     PORTB
+RESET_ZEIT        EQU     6000T
+
+Bewegungsmelder
+
+        brset     BEWEGUNG_PIN,BEWEGUNG_PORT,Setzen
+        
+        bclr       7,Bewegung_Flag
+        
+        ldhx      Bewegung_Counter
+        incx
+        sthx      Bewegung_Counter
+        cphx      #RESET_ZEIT
+        blo       Ende_Bewegung
+        
+        clr       Bewegung_Flag
+        clr       Bewegung_Counter
+               
+	      bra	      Ende_Bewegung		
+
+Setzen
+        brset     7,Bewegung_Flag,Ende_Bewegung
+        bset      7,Bewegung_Flag
+            
+        brset     0,Bewegung_Flag,Flag_1
+        bset      0,Bewegung_Flag
+        bra       Ende_Bewegung
+Flag_1        
+        ;brset     1,Bewegung_Flag,Flag_2
+        bset      1,Bewegung_Flag
+        ;bra       Ende_Bewegung
+;Flag_2        
+        ;brset     2,Bewegung_Flag,Flag_3
+        bset      2,Bewegung_Flag
+        ;bra       Ende_Bewegung
+;Flag_3        
+        ;brset     3,Bewegung_Flag,Flag_4
+        bset      3,Bewegung_Flag
+        ;bra       Ende_Bewegung
+;Flag_4            
+        bset      4,Bewegung_Flag
+        bra       Ende_Bewegung  
+        
+Ende_Bewegung
+        
+        rts   
+                INCLUDE 'Passwort.inc'          ; Routine zur Passworteingabe
+;************************************************************************************************
+;*      PASSWORT                                                                                *
+;*                                                                                              *
+;*      Revision vom 10. Januar 2014                                                            *
+;*                                                                                              *
+;*      Name: Valentin Beranrd                                                                  *
+;*      Klasse: 5AEL                                                                            *
+;*      Version: 1.0                                                                            *
+;*                                                                                              *
+;*      Passworteingabe auf Richtigkeit überprüfen                                              *
+;*                                                                                              *
+;*      Variabeln:                                                                              *
+;*      PW_Flag     ds    1T                                                                    *
+;*      PW_Counter  ds    1T                                                                    *
+;*      Compare     ds    1T                                                                    *    
+;*                                                                                              *
+;*      Eingang:                                                                                *
+;*      jsr     Check_PW                                                                        *
+;*                                                                                              *
+;*      In Init kopieren:                                                                       *
+;*      jsr   Init_Passwort                                                                     *
+;*                                                                                              *
+;*      In ASM kopieren                                                                         *
+;*      INCLUDE 'Passwort.inc'        ; Routine zur Passworteingabe                             *
+;*                                                                                              *      
+;************************************************************************************************
+
+Init_PW
+
+          lda     #1T
+          sta     PW_1
+          lda     #2T
+          sta     PW_2
+          lda     #3T
+          sta     PW_3
+          lda     #4T
+          sta     PW_4
+          lda     #5T
+          sta     PW_5
+          lda     #$FF
+          sta     PW_6
+          lda     #$FF
+          sta     PW_7
+          lda     #$FF
+          sta     PW_8
+          lda     #$FF
+          sta     PW_9
+          lda     #$FF
+          sta     PW_10
+          
+          rts
+
+
+Check_PW
+          ; Anfang oder Ende?
+          lda     #%00000001
+          cmpa    TOK_Flag
+          bne     PW_Weiter
+      
+          bset    1,TOK_Flag
+
+          brclr   7,PW_Flag,StartPW
+         
+          ldhx    #PW_1
+          txa
+          add     PW_Counter
+          add     #1T
+          tax
+          lda     0,X
+          cmpa    #$FF
+          bne     Falsch
+          
+          lda     #0T
+          sta     PW_Counter    
+
+          brset   6,PW_Flag,Falsch
+          brclr   6,PW_Flag,Richtig
+
+StartPW      
+          bset    7,PW_Flag
+          lda     #0T
+          sta     PW_Counter
+          
+          ; Text Passwort Eingeben 
+          jsr     A_PW
+          
+          rts 
+          
+Falsch
+
+          lda     #0T
+          sta     PW_Counter
+          sta     PW_Flag
+          bset    1,PW_Flag
+          
+          ; Print Falsche Eingabe
+          jsr     A_PWFalsch
+      
+          rts
+      
+Richtig
+
+          lda   #0T
+          sta   PW_Counter
+          sta   PW_Flag
+          bset  0,PW_Flag
+      
+          rts          
+
+PW_Weiter
+
+          brclr   7,PW_Flag,PW_Nichts
+          
+          ; Tastendruck erkennen
+          lda     #%00000001
+          cmpa    T1_Flag
+          beq     PW_Druck
+          cmpa    T2_Flag
+          beq     PW_Druck
+          cmpa    T3_Flag
+          beq     PW_Druck
+          cmpa    T4_Flag
+          beq     PW_Druck
+          cmpa    T5_Flag
+          beq     PW_Druck
+          cmpa    T6_Flag
+          beq     PW_Druck
+          cmpa    T7_Flag
+          beq     PW_Druck
+          cmpa    T8_Flag
+          beq     PW_Druck
+          cmpa    T9_Flag
+          beq     PW_Druck
+          cmpa    T0_Flag
+          beq     PW_Druck
+
+          bra     PW_rts
+          
+PW_Druck          
+      
+          bset    CHECKED,T1_Flag
+          bset    CHECKED,T2_Flag
+          bset    CHECKED,T3_Flag
+          bset    CHECKED,T4_Flag
+          bset    CHECKED,T5_Flag
+          bset    CHECKED,T6_Flag
+          bset    CHECKED,T7_Flag
+          bset    CHECKED,T8_Flag
+          bset    CHECKED,T9_Flag
+          bset    CHECKED,T0_Flag
+      
+          jsr     Ausgabe_Stern
+          
+          ldhx    #PW_1
+          txa
+          add     PW_Counter
+          tax
+          lda     0,X
+                
+          cmpa    TValue
+          beq     ZeichenOK
+            
+          bset    6, PW_Flag      ; Fehler
+       
+ZeichenOK
+
+          lda     PW_Counter
+          inca
+          sta     PW_Counter
+          
+          rts       
+      
+PW_Nichts
+
+          brclr   1,PW_Flag,PW_Del
+          
+          lda     PW_Counter
+          inca
+          sta     PW_Counter
+          cmpa    #50T
+          bne     PW_rts         
+          
+PW_Del
+
+          ; untere Zeile löschen 
+          jsr     A_Nichts
+          
+          lda     #0T
+          sta     PW_Counter
+          sta     PW_Flag
+                  
+PW_rts      
+      
+          rts          
+
+
+Change_PW
+
+          ; End-Tasten check
+          lda     #%00000001          
+          cmpa    TOK_Flag
+          bne     Change_Weiter
+          
+          ; Bei 0 Zeichen: Kein Ende
+          lda     PW_Counter
+          cmpa    #0T
+          beq     Change_Weiter
+          
+          bset    CHECKED,TOK_Flag
+          
+FF_Loop
+          ; Restliche Variablen mit $FF auffüllen
+          lda     PW_Counter
+          inca
+          sta     PW_Counter
+          cmpa    #10T
+          beq     Ende_FF
+          
+          ldhx    #PW_1
+          txa
+          add     PW_Counter
+          tax          
+          lda     #$FF
+          sta     0,X
+          
+          bra     FF_Loop         
+          
+Ende_FF          
+          lda     #%00100000
+          sta     PW_Flag 
+          rts               
+                  
+Change_Weiter
+          
+          ; Tastendruck erkennen 
+          lda     #%00000001
+          cmpa    T1_Flag
+          beq     Change_Druck
+          cmpa    T2_Flag
+          beq     Change_Druck
+          cmpa    T3_Flag
+          beq     Change_Druck
+          cmpa    T4_Flag
+          beq     Change_Druck
+          cmpa    T5_Flag
+          beq     Change_Druck
+          cmpa    T6_Flag
+          beq     Change_Druck
+          cmpa    T7_Flag
+          beq     Change_Druck
+          cmpa    T8_Flag
+          beq     Change_Druck
+          cmpa    T9_Flag
+          beq     Change_Druck
+          cmpa    T0_Flag
+          beq     Change_Druck
+
+          bra     PW_rts
+          
+Change_Druck
+
+          bset    CHECKED,T1_Flag
+          bset    CHECKED,T2_Flag
+          bset    CHECKED,T3_Flag
+          bset    CHECKED,T4_Flag
+          bset    CHECKED,T5_Flag
+          bset    CHECKED,T6_Flag
+          bset    CHECKED,T7_Flag
+          bset    CHECKED,T8_Flag
+          bset    CHECKED,T9_Flag
+          bset    CHECKED,T0_Flag
+          
+          jsr     Ausgabe_Stern
+          
+          ldhx    #PW_1
+          txa
+          add     PW_Counter
+          tax          
+          lda     TValue
+          sta     0,X
+          
+          lda     PW_Counter
+          inca
+          sta     PW_Counter
+
+          rts 
+          
+          
+Ausgabe_Stern 
+          
+          ; * Ausgeben
+          ldhx    #Text_Stern
+          sthx    SourcePointer
+          ldhx    #LCD_Unten+4
+          txa
+          add     PW_Counter
+          tax
+          sthx    DestPointer
+          lda     #1T
+          sta     TextLenght          
+          jsr     CopyText 
+          
+          rts                             
+          
+Text_Stern
+      
+      dc.b    '*'
+      
+                INCLUDE 'SPI.inc'               ; SPI Initialisierung
+;************************************************************************************************
+;*      SPI INITIALISIERUNG                                                                   	*
+;*                                                                                              *
+;*      Revision vom 21. Oktober 2011                                                           *
+;*                                                                                              *
+;*      Name: Valentin Bernard                                                                  *
+;*      Klasse: 5AEL                                                                            *
+;*      Version: 1.0                                                                            *
+;*                                                                       			                  *    
+;*      Synchrone serielle Schnittstelle, initialisierung      			                            *
+;*                                                                                              *
+;*      Include:                                                                         	      *
+;*      INCLUDE 'SPI.inc'                                                   										*
+;*                                                                                              *
+;*      Init:                                                                       		        *
+;*      jsr     Init_SPI 		                                                                    *
+;*                                                                                              *
+;************************************************************************************************
+
+
+Init_SPI
+    mov   #%01011100,SPI1C1   ; SPI Aktiviert als Master
+;           ||||||||
+;           ||||||||_____  Shifter directiom.  0 = 7..0
+;           |||||||______  SS Output enable = 0
+;           ||||||_______  Clock Pahse, 0 = Middle o. Cycle
+;           |||||________  Clock Polarity 0 = Active High
+;           ||||_________  MSTR, 1 = Master
+;           |||__________  Transmit Interrupt enable
+;           ||___________  SPI enable
+;           |____________  Interrupt enable
+
+    mov   #%00000000,SPI1C2   
+;           ||||||||
+;           ||||||||_____  Bidirectional enable
+;           |||||||______  SPI Stop in Wait mode
+;           ||||||_______  nc
+;           |||||________  Bidirectional, Output enable
+;           ||||_________  Mode-Fault enable
+;           |||__________  nc
+;           ||___________  nc
+;           |____________  nc
+ 
+ 
+
+    mov   #%00110000,SPI1BR     ; Stellt den SPI_Clock ein
+;           ||||||||
+;           ||||||||_____  )
+;           |||||||______  > Timer Scaler 2..256 (2)
+;           ||||||_______  )
+;           |||||________  nc
+;           ||||_________  )
+;           |||__________  > Timer Prescaler 1..8
+;           ||___________  )
+;           |____________  nc
+
+    rts
+    
+    
+                INCLUDE 'RFID.inc'              ; RFID-Tag Erkennung
+;************************************************************************************************
+;*      AW32-RFID-Programm  Version 1.0                                                        	*
+;*                                                                                              *
+;*      Revision vom 21. Oktober 2011                                                           *
+;*                                                                                              *
+;*      Name: Valentin Bernard                                                                  *
+;*      Klasse: 5AEL                                                                            *
+;*      Version: 1.0                                                                            *
+;*                                                                       			                  *    
+;*      Auslesen des RFID-Tags über synchrone serielle Schnittstelle                       			*
+;*                                                                                              *
+;*                                                                                              *
+;*      Variabeln:                                                                  		        *
+;*    ??RFID_Tag        ds    2T                                           											*
+;*      Counter         ds    1T                                                                *
+;*      Adresse         ds    1T                                                                *
+;*      Daten           ds    1T                                                                *          
+;*                                                                                              *
+;*      Include:                                                                         	      *
+;*      INCLUDE RFID.inc                                                   											*
+;*                                                                                              *
+;*      Eingang:                                                                 	            	*
+;*      jsr   Check_RFID											                                                  *
+;*                                                                                              *
+;*      Init:                                                                       		        *
+;*      jsr     Init_RFID                                                                       *
+;*                                                                                              *
+;************************************************************************************************
+
+
+Init_RFID
+
+  ;//Timer: TPrescaler*TreloadVal/6.78MHz = 24ms
+  ;Write_MFRC522(TModeReg, 0x8D);		//Tauto=1; f(Timer) = 6.78MHz/TPreScaler
+  ;Write_MFRC522(TPrescalerReg, 0x3E);	//TModeReg[3..0] + TPrescalerReg
+  ;Write_MFRC522(TReloadRegL, 30);           
+  ;Write_MFRC522(TReloadRegH, 0);
+
+  ;Write_MFRC522(TxAutoReg, 0x40);		//100%ASK
+  ;Write_MFRC522(ModeReg, 0x3D);		//CRC initilizate value 0x6363	???
+
+    ;Reset Durchführen
+    lda     #CommandReg
+    sta     Adresse
+    lda     #PCD_RESETPHASE
+    sta     Daten
+    jsr     Write_RFID  
+    
+    lda     #TModeReg
+    sta     Adresse
+    lda     #$8D
+    sta     Daten
+    jsr     Write_RFID
+    lda     #TModeReg
+    sta     Adresse
+    jsr     Read_RFID 
+    
+    lda     #TPrescalerReg
+    sta     Adresse
+    lda     #$3E
+    sta     Daten
+    jsr     Write_RFID
+    
+    lda     #TReloadRegL
+    sta     Adresse
+    lda     #30T
+    sta     Daten
+    jsr     Write_RFID
+ 
+    lda     #TReloadRegH
+    sta     Adresse
+    lda     #$0
+    sta     Daten
+    jsr     Write_RFID
+
+    lda     #TxAutoReg
+    sta     Adresse
+    lda     #$40
+    sta     Daten
+    jsr     Write_RFID
+
+    lda     #ModeReg
+    sta     Adresse
+    lda     #$3D
+    sta     Daten
+    jsr     Write_RFID
+      
+    ; Antenne aktivieren
+    lda     #TxControlReg
+    sta     Adresse
+    jsr     Read_RFID 
+    lda     Daten   
+    ORA     #%0000011
+    sta     Daten
+    jsr     Write_RFID
+    
+    lda     #TxControlReg
+    sta     Adresse
+    jsr     Read_RFID
+    lda     Daten
+    
+
+    rts        
+
+Check_RFID
+
+    ;   MFRC5522_Request
+    
+    lda     Counter
+    cmpa    #0T
+    beq     No_Transfer
+    jmp     Transfer
+
+No_Transfer    
+    
+    lda     #BitFramingReg
+    sta     Adresse
+    lda     #$07
+    sta     Daten
+    jsr     Write_RFID
+    
+    ; MFRC5522_ToCard
+     
+    lda     #CommIEnReg           ;Interrupts erlauben
+    sta     Adresse               
+    lda     #$77
+    ORA     #$80
+    sta     Daten
+    jsr     Write_RFID
+    
+    lda     #CommIrqReg           ;Alle Interrupt-Bits löschen
+    sta     Adresse
+    jsr     Read_RFID
+    lda     Daten
+    AND     #%01111111
+    sta     Daten
+    jsr     Write_RFID
+    
+    lda     #FIFOLevelReg         ;Buffer Initialisieren
+    sta     Adresse               ;Flush-Buffer Pin
+    jsr     Read_RFID
+    lda     Daten
+    ORA     #$80
+    sta     Daten
+    jsr     Write_RFID
+       
+    lda     #CommandReg           ;Derzeitiges Kommando Unterbrecehn
+    sta     Adresse
+    lda     #PCD_IDLE
+    sta     Daten
+    jsr     Write_RFID
+    
+    lda     #FIFODataReg          ;Daten in Buffer schreiben
+    sta     Adresse               
+    lda     #PICC_REQALL          ;Nach allen Tags suchen
+    sta     Daten
+    jsr     Write_RFID
+    
+    lda     #CommandReg           ;FIFO-Buffer hinaussenden 
+    sta     Adresse
+    lda     #PCD_TRANSCEIVE       ;Senden-und-Empfangen Befehl
+    sta     Daten
+    jsr     Write_RFID
+    
+    lda     #BitFramingReg        ;StartSend_Bit auf 1 setzen
+    sta     Adresse
+    jsr     Read_RFID
+    lda     Daten
+    ORA     #$80
+    sta     Daten
+    jsr     Write_RFID
+    
+Transfer
+
+        
+    lda     #CommIrqReg
+    sta     Adresse
+    jsr     Read_RFID
+    lda     Daten
+    sta     Status
+    
+    lda     Status        ;Check Timer_IRQ
+    AND     #$01
+    cmpa    #$01
+    beq     Ende_Transfer
+    
+    lda     Status        ;Check Idle_IRQ 
+    AND     #$10
+    cmpa    #$10
+    beq     Ende_Transfer
+    
+    lda     Status        ;Check Rx_IRQ
+    AND     #$20
+    cmpa    #$20
+    beq     Ende_Transfer
+    
+    lda     Counter
+    inca
+    sta     Counter    
+    cmpa    #3T
+    bls     Ende_RFID
+
+
+
+Ende_Transfer
+    lda     #BitFramingReg        ;StartSend_Bit auf 0 setzen
+    sta     Adresse
+    jsr     Read_RFID
+    lda     Daten
+    AND     #%01111111
+    sta     Daten
+    jsr     Write_RFID 
+    
+    lda     Counter               
+    cmpa    #4T
+    beq     Ende_RFID
+    lda     #0T
+    sta     Counter        
+
+    lda     #ErrorReg              ;Check 4 versch. Error-Flags
+    sta     Adresse
+    jsr     Read_RFID
+    lda     Daten
+    AND     #$1B
+    cmpa    #$1B
+    beq     Ende_RFID
+    cmpa    #$10
+    beq     Ende_RFID
+    cmpa    #$0B
+    beq     Ende_RFID
+    cmpa    #$08
+    beq     Ende_RFID
+    cmpa    #$03
+    beq     Ende_RFID
+    cmpa    #$02
+    beq     Ende_RFID
+    cmpa    #$01
+    beq     Ende_RFID
+    
+    lda     Status                ;Check Timer_IRQ
+    AND     #$01                        
+    cmpa    #$01
+    beq     Ende_RFID
+    
+    ;an dieser Stelle sollte ein Tag vorhanen sein
+    
+    lda     #$FF
+    sta     RFID_Flag
+
+      
+Ende_RFID
+   
+    rts
+    
+    
+;***** Sende Daten *******************************************************************************    
+
+Write_RFID
+
+    brclr   5,SPI1S,Ende_RW
+    
+    lda     Adresse
+    lsla
+    AND     #%01111110    
+    sta     SPI1D
+
+    bclr    3,PORTE
+    
+S1Delay 
+    brclr   7,SPI1S,S1Delay
+    
+    lda     SPI1D
+    
+    lda     Daten
+
+    sta     SPI1D
+
+S2Delay 
+    brclr   7,SPI1S,S2Delay
+    
+    lda     SPI1D
+    
+    bset    3,PORTE
+    
+Ende_RW    
+        
+    rts
+  
+;***** Empfange Daten ****************************************************************************  
+    
+Read_RFID
+
+    brclr   5,SPI1S,Ende_RW    
+        
+    lda     Adresse
+    lsla
+    AND     #%01111110
+    ORA     #%10000000 
+
+    sta     SPI1D
+    
+    bclr    3,PORTE
+    
+S3Delay
+    brclr    7,SPI1S,S3Delay
+    
+    lda     SPI1D
+    
+    lda     #$00
+
+    sta     SPI1D
+    
+S4Delay
+    brclr    7,SPI1S,S4Delay
+    
+    lda     SPI1D
+
+    sta     Daten    
+    bset    3,PORTE     
+        
+    rts    
+  
+                INCLUDE 'Ausgabe.inc'          ; Alle Ausgaben
+;Alle für das Programm benötigten Textausgaben als Subroutinen
+
+A_StartText
+
+          ldhx    #Text_Start1
+          sthx    SourcePointer
+          ldhx    #LCD_Oben
+          sthx    DestPointer
+          lda     #32T
+          sta     TextLenght     
+          jsr     CopyText
+          
+          rts
+          
+A_StartText2          
+          
+          ldhx    #Text_Start2
+          sthx    SourcePointer
+          ldhx    #LCD_Oben
+          sthx    DestPointer
+          lda     #32T
+          sta     TextLenght     
+          jsr     CopyText
+          
+          rts
+
+A_Inaktiv
+
+          ldhx    #Text_Inaktiv
+          sthx    SourcePointer
+          ldhx    #LCD_Oben
+          sthx    DestPointer
+          lda     #32T
+          sta     TextLenght
+          jsr     CopyText
+
+          rts
+          
+A_Aktiv             
+          
+          ldhx    #Text_Aktiv
+          sthx    SourcePointer
+          ldhx    #LCD_Oben
+          sthx    DestPointer
+          lda     #16T
+          sta     TextLenght          
+          jsr     CopyText  
+          
+          rts
+          
+A_Change
+          
+          ldhx    #Text_Change
+          sthx    SourcePointer
+          ldhx    #LCD_Oben
+          sthx    DestPointer
+          lda     #19T
+          sta     TextLenght
+          jsr     CopyText          
+          
+          rts
+          
+A_Alarm
+          
+          ldhx    #Text_Alarm
+          sthx    SourcePointer
+          ldhx    #LCD_Oben
+          sthx    DestPointer
+          lda     #16T
+          sta     TextLenght          
+          jsr     CopyText    
+
+          rts 
+          
+A_PW          
+          ldhx    #Text_PW
+          sthx    SourcePointer
+          ldhx    #LCD_Unten
+          sthx    DestPointer
+          lda     #16T
+          sta     TextLenght          
+          jsr     CopyText
+          
+          rts
+          
+A_PWFalsch
+
+          ldhx    #Text_Fehler
+          sthx    SourcePointer
+          ldhx    #LCD_Unten
+          sthx    DestPointer
+          lda     #16T
+          sta     TextLenght          
+          jsr     CopyText 
+          
+          rts
+          
+A_Nichts  
+  
+          ldhx    #Text_Nichts
+          sthx    SourcePointer
+          ldhx    #LCD_Unten
+          sthx    DestPointer
+          lda     #16T
+          sta     TextLenght          
+          jsr     CopyText  
+              
+          rts 
+          
+                             
+;*******|Texte ******************************************************************************
+
+Text_Alarm
+                  ;----------------
+          dc.b    '    Alarm!!     '         
+Text_Start1
+                  ;----------------
+          dc.b    'Valentin Bernard'
+          dc.b    '      5AEL      '          
+Text_Start2
+                  ;----------------
+          dc.b    ' Maturaprojekt  '
+          dc.b    ' Alarmanlage    '
+Text_Inaktiv
+                  ;----------------
+          dc.b    ' Alarm Inaktiv  '
+          dc.b    '                '
+Text_Change
+                  ;----------------
+          dc.b    ' Neues Passwort '
+          dc.b    'PW:'
+Text_Aktiv
+                  ;----------------
+          dc.b    ' Alarm Aktiv    '           
+Text_PW 
+                  ;----------------
+          dc.b    'PW:             '
+Text_Nichts
+                  ;----------------
+          dc.b    '                '           
+Text_Fehler
+                  ;----------------
+          dc.b    'FALSCHE EINGABE '
+            
+                            
+          
+                
+          
+         
+                
+
+                INCLUDE 'Init.inc'              ; Hier startet der µC / Initialisierungen
+;************************************************************************************************
+;*                                                                                              *
+;*      Main_Init: Hier beginnt der Controller mit der Arbeit                                   *
+;*                                                                                              *
+;************************************************************************************************
+
+
+Main_Init
+                ldhx    #E_RAM_END              ; Setze meinen Stackpointer ganz an das Ende der Extended RAM
+                txs
+                
+                jsr     Clear_Zero_Ram          ; [.] Löscht die ZEROPAGE-RAM
+                jsr     Clear_Extended_Ram      ; [.] Löscht die EXTENDED-RAM
+                
+                lda     #0T                     ; Alle Ports vorsichtshalber mal auf Null setzen
+                sta     PORTA
+                sta     PORTD
+                sta     PORTE
+
+                mov     #%11111111,PTADD        ; Data Direction für PORTA
+                mov     #%00000001,PTBDD        ; Data Direction für PORTB                
+                mov     #%00000000,PTCDD        ; DDR für Port C: 
+                mov     #%11000000,PTDDD        ; DDR für PORT D: 
+                mov     #%11001000,PTEDD        ; DDR für PORT E:  
+                mov     #%00000000,PTFDD        ; DDR für PORT F: 
+                mov     #%00000011,PTGDD        ; DDR für PORT G: 
+
+                jsr     Init_MCU                ; [.] Controller Clock usw.       
+                jsr     Init_Realtime           ; [Timer.inc] Realtime + PWM-Kanäle
+                
+;**************| Eigene Inits |******************************************************************              
+                
+                jsr     Init_Menue                 
+                jsr     Init_Alarmton
+                jsr     Init_Alarmtimer
+                jsr     Init_PW                 
+                jsr     Init_LCD                ; [LCD_Disp_8Bit.inc] Initialisiert das LCD
+                jsr     Init_SPI                
+                bset    3,PORTE
+                
+ ;************************************************************************************************
+                
+                cli                             ; Interrupts freigeben
+
+                jmp     Main_Loop
+
+                
+
+
+;************************************************************************************************
+;*                                                                                              *
+;*      Initialisierung verschiedener Register der MCU                                          *
+;*                                                                                              *
+;************************************************************************************************
+
+Init_MCU
+                lda     #%01111100
+                ;         ||||||||
+                ;         ||||||||_____  Fix 0
+                ;         |||||||______  Loss of Clock detection enabled (0)
+                ;         ||||||_______  Enabel Osc in OFF-Mode (1)
+                ;         |||||________  Clock Mode 1:1 = FLL enabled, external Reference
+                ;         ||||_________  Clock Mode 
+                ;         |||__________  External reference 0=External Clock  1=Ext.Crystal
+                ;         ||___________  Freq.Range 0=Low Frequency  1=High Frequency
+                ;         |____________  High Gain Osc Select 0=Low Power 1=High Gain
+                
+                sta     ICGC1      
+                
+                lda     #0T
+                sta     SMCLK
+                sta     ICGFLTU
+                sta     ICGS2
+                sta     ICGS1
+                lda     #$01
+                sta     ICGC2
+                lda     #$0C
+                sta     ICGFLTL
+
+                rts
+                
+                
+;************************************************************************************************
+;*                                                                                              *
+;*      Routinen zum Löschen der gesamten RAM (Zero+Extended)                                   *
+;*                                                                                              *
+;************************************************************************************************
+
+
+
+
+Clear_Zero_Ram
+                lda     #0T
+                ldhx    #Z_RAM_START
+Next_Clear_Zero
+                sta     0,X
+                aix     #1T
+                cphx    #Z_RAM_END
+                bne     Next_Clear_Zero
+                rts
+                
+Clear_Extended_Ram                
+                lda     #0T
+                ldhx    #E_RAM_START
+Next_Clear_Extended
+                sta     0,X
+                aix     #1T
+                cphx    #E_RAM_END-4T
+                bne     Next_Clear_Extended   ; Den Stack lasse ich leben...
+                rts
+                
+                
+                INCLUDE 'Realtime_T1CH0.inc'    ; Alles für die Timer (Realtime)
+;************************************************************************************************
+;*                                                                                              *
+;*      Init_Realtime: Initialisiert den RealTime auf Timer1, CH0                               *
+;*                                                                                              *
+;*      BusClock: Bei 19,6608 MHz-Quarz ist der Busclock                                        *
+;*      1/19,6608MHz x 4 = 50,863 nsec x 4 = 203,451 nsec                                       *
+;*      Bei $6000 Zyklen (Dezimal: 24576 Zyklen) á 203,451 nsec = 5 msec                        *
+;*                                                                                              *
+;************************************************************************************************
+
+Init_Realtime
+
+   mov   #%00000000,TPM1SC     ; Timer 1CH2 STOP
+
+
+   mov   #$20,TPM1C0VH         ; Setzt einen Output Compare nach $6000 Clicks
+   mov   #$00,TPM1C0VL         ; das sind bei dem gegebenen Clock GENAU 1,66666 msec
+                           
+
+   mov   #%01010000,TPM1C0SC   ; Timer 1 Channel 5 Gesetzt für Output Compare $50
+ ;         ||||||||
+ ;         ||||||||_____  not used
+ ;         |||||||______  not used
+ ;         ||||||_______  ELS1A Edge Level Select Bits for Channel 1
+ ;         |||||________  ELS1B [B:A]=[0:1]=Toggle Output con Compare  [0:0]=Software compare only
+ ;         ||||_________  MS1A Mode select for Timer 1  [B:A]=[0:1] = Output compare
+ ;         |||__________  MS1B
+ ;         ||___________  CH1IE 0=Interr. disable  1=Interrupt enable
+ ;         |____________  CH1F  0=No input capt. or Outp.Comp on Pin  1=Input capt. or Outp.Comp on Pin 
+ 
+
+   mov   #%00001000,TPM1SC     ; Startet den Timer 1CH2
+ ;         ||||||||
+ ;         ||||||||_____  PS0  Prescaler : 0:0:0=Clock/1    0:0:1=Clock/2    0:1:0=Clock/4
+ ;         |||||||______  PS1              0:1:1=Clock/8    1:0:0=Clock/16   1:0:1=Clock/32
+ ;         ||||||_______  PS2              1:1:0=Clock/64   1:1:1=Clock/128
+ ;         |||||________  CLKS [A] --> [B:A]  0:0 = TPM OFF  0:1 = Bus rate Clock (BUSCLK)
+ ;         ||||_________  CLKS [B] CLK Source 1:0 = Fixed system Clock (XCLX) 1:1 Ex. Source (TPMxCLK)
+ ;         |||__________  CPWMS Normal Op (0) or Center alligned PWM (1)
+ ;         ||___________  TOIE Timer Interrupt Enable
+ ;         |____________  TOV - Timer Overflow, Read only
+
+   rts
+
+
+
+;************************************************************************************************
+;*                                                                                              *
+;*      Realtime: Diese Interrupt-Routine wird alle 1,666 msec aufgerufen                       *
+;*                                                                                              *
+;************************************************************************************************
+
+
+Realtime
+      pshh
+      
+      lda     TPM1C0SC
+      mov     #%01010000,TPM1C0SC   ;Flag löschen
+  
+      lda     TPM1C0VL              ; Nächster Interrupt in weiteren $6000 Clicks
+      add     #$00                  ; Also wieder $20 x 203,451 nsec = 1,666 msec GENAU
+      sta     TPM1C0VL	
+
+      lda     TPM1C0VH
+      adc     #$20
+      sta     TPM1C0VH 
+                
+      lda     RealTimeCounter
+      inca
+      sta     RealTimeCounter           ; 6 x 1,6666ms = 10 msec genau
+      cmpa    #6T
+      bne     Exit_Realtime
+      clra
+      sta     RealTimeCounter
+             
+      lda     #1T
+      sta     TimerFlag
+
+
+Exit_Realtime       
+      pulh
+
+      rti
+                INCLUDE 'Dummy_Isr.inc'         ; Für fehlgeschlagene (unerwünschte) Interrupts
+;************************************************************************************************
+;*                                                                                              *
+;* DUMMY_ISR                                                                                    *
+;* Wenn ein falscher Interrupt reinkommt...	                		                                *
+;*                                                                                              *
+;************************************************************************************************
+
+Dummy_ISR
+         nop            ; Im Prinzip nix tun und sofort wieder raus aus dem Interrupt
+         rti
+         
+         
+                INCLUDE 'Vectors.inc'           ; Vektoren usw.
+;************************************************************************************************
+;*                                                                                              *
+;*                 Interrupt Vectoren                                                           *
+;*                                                                                              *
+;************************************************************************************************
+
+                ORG   VECTOR_START
+
+
+                DC.W    Dummy_ISR       ; $FFCC+$FFCD   Vector RTI
+                DC.W    Dummy_ISR       ; $FFCE+$FFCF   Vector IIC1
+                DC.W    Dummy_ISR       ; $FFD0+$FFD1   Vector ADC1
+                DC.W    Dummy_ISR       ; $FFD2+$FFD3   Vector KEYBOARD
+                DC.W    Dummy_ISR       ; $FFD4+$FFD5   Vector SCI2_TX
+                DC.W    Dummy_ISR       ; $FFD6+$FFD7   Vector SCI2_RX
+                DC.W    Dummy_ISR       ; $FFD8+$FFD9   Vector SCI2_ERR
+                DC.W    Dummy_ISR       ; $FFDA+$FFDB   Vector SCI1_TX
+                DC.W    Dummy_ISR       ; $FFDC+$FFDC   Vector SCI1_RX
+                DC.W    Dummy_ISR       ; $FFDE+$FFDF   Vector SCI1_ERR
+                DC.W    Dummy_ISR       ; $FFE0+$FFE1   Vector SPI1
+                DC.W    Dummy_ISR       ; $FFE2+$FFE3   Vector TPM2OVF                
+                DC.W    Dummy_ISR       ; $FFE4+$FFE5   Vector TMP2CH1                
+                DC.W    Dummy_ISR       ; $FFE6+$FFE7   Vector TPM2CH0                
+                DC.W    Dummy_ISR       ; $FFE8+$FFE9   Vector TPM1OVF                
+                DC.W    Timer_Over      ; $FFEA+$FFEB   Vector TPM1CH5
+                DC.W    Dummy_ISR       ; $FFEC+$FFED   Vector TPM1CH4
+                DC.W    Dummy_ISR       ; $FFEE+$FFEF   Vector TPM1CH3
+                DC.W    Dummy_ISR       ; $FFF0+$FFF1   Vector TPM1CH2
+                DC.W    Dummy_ISR       ; $FFF2+$FFF3   Vector TPM1CH1
+                DC.W    Realtime        ; $FFF4+$FFF5   Vector TPM1CH0
+                DC.W    Dummy_ISR       ; $FFF6+$FFF7   Vector ICG
+                DC.W    Dummy_ISR       ; $FFF8+$FFF9   Vector LVD
+                DC.W    Dummy_ISR       ; $FFFA+$FFFB   Vector_IRQ
+                DC.W    Dummy_ISR       ; $FFFC+$FFFD   Vector SWI
+                DC.W    Main_Init       ; $FFFE+$FFFF   Vector RESET
+                
+
